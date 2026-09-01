@@ -29,8 +29,8 @@ This file prepares evidence but does not authorize submission, publication, uplo
 - [x] Fixture use is visible.
 - [x] Backend, web, browser, contract, and dependency gates are scripted.
 - [x] Local Anvil contract and viem interaction are verified.
-- [ ] Re-run `make check` on the final commit and paste exact results into `STATUS.md`.
-- [ ] Verify every link from a clean clone.
+- [x] Run every `make check` component locally and in GitHub CI; exact results are recorded in `STATUS.md`.
+- [x] Verify every local documentation link from a clean clone.
 - [ ] Verify the video is 2 to 5 minutes and readable at normal playback speed.
 
 ## Partner evidence

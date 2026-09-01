@@ -77,4 +77,6 @@ Commit: `5aab07a` (`feat(base): anchor verified decision receipts`)
 - Exported JSON, CSV, and Markdown artifacts and connected the verified artifact to the API and dashboard.
 - Drafted the 3:30 demo, problem-validation disclosure, submission checklist, and unpublished submission materials.
 
-Commit: recorded in Git history as `test: add cross-session deletion benchmark`.
+Commit: `e403931` (`test: add cross-session deletion benchmark`)
+
+All Python, web, browser, Solidity, viem, and dependency gates then passed in [GitHub Actions run 33492189813](https://github.com/tang-vu/recallops/actions/runs/33492189813).

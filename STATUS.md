@@ -4,7 +4,7 @@ Last updated: 2026-09-01 UTC
 
 ## Current milestone
 
-Milestone 6 complete locally: Benchmark, hardening, and presentation
+Milestones 0 through 6 complete locally; human-controlled partner evidence and submission remain
 
 ## Completed work
 
@@ -46,6 +46,7 @@ Milestone 6 complete locally: Benchmark, hardening, and presentation
 - Drafted the required demo script, submission checklist, submission copy, and honest secondary problem validation.
 - Added least-privilege GitHub Actions quality gates with commit-pinned actions for the Python control plane, web console, browser flow, Solidity registry, viem bridge, and dependency audits.
 - Created one hackathon milestone and four narrowly scoped GitHub issues for the remaining human-controlled evidence and submission actions.
+- Pushed release commit `e403931` and passed all three jobs in [GitHub Actions run 33492189813](https://github.com/tang-vu/recallops/actions/runs/33492189813).
 
 ## Tests and checks actually run
 
@@ -103,6 +104,8 @@ Milestone 6 complete locally: Benchmark, hardening, and presentation
 - Final release-candidate contract gate: Foundry format/lint, 13 tests with 1,024 total fuzz cases, gas snapshot, viem type/test/build, and npm audit passed
 - The checksum-verified actionlint 1.7.12 release validated `.github/workflows/ci.yml` with no findings
 - Local Markdown link validation passed, `git diff --check` passed, tracked secret-like filename review found only `.env.example` templates, and the high-confidence secret assignment scan found no match
+- GitHub-hosted Ubuntu CI passed the Python control plane, web console with Playwright, and receipt registry jobs on release commit `e403931`
+- A fresh clone of release commit `e403931` synced from the frozen lock on Python 3.12.13, stayed clean, and passed all three documentation and local-link tests
 
 ## Known failures
 
@@ -130,6 +133,5 @@ None for completed local implementation. The remaining externally verifiable ste
 
 ## Next tasks
 
-- Run the final cross-stack gate, repository link check, and secret scan against the release candidate.
 - Record only real partner evidence after the exact human approvals in Issues 1 and 2.
 - Record the demo and submit only after explicit human approval in Issues 3 and 4.

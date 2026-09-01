@@ -15,6 +15,7 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | Base Sepolia | Public contract address and transaction hash | Not obtained; no multiplier claim |
 | Benchmark | Twelve scenarios in production Sibyl and stateless comparison modes | Obtained; run `1627c118-32a7-5bc2-8c14-fdfe62db1849`, seed `20260901` |
 | Deletion test | Disabled Sibyl stops production; stateless comparison repeats unsafe rehire | Obtained; `deletion-test.json` reports `passed: true` |
+| Cross-stack CI | Linux-hosted Python, web, browser, Solidity, viem, and dependency gates | Obtained; [run 33492189813](https://github.com/tang-vu/recallops/actions/runs/33492189813) passed |
 
 Only real public identifiers will be added. Fixture output is labeled `FIXTURE MODE` everywhere it appears.
 

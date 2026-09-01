@@ -1,5 +1,7 @@
 # RecallOps
 
+[![Quality gates](https://github.com/tang-vu/recallops/actions/workflows/ci.yml/badge.svg)](https://github.com/tang-vu/recallops/actions/workflows/ci.yml)
+
 **Memory-gated control plane for autonomous agent commerce**
 
 RecallOps uses durable policy and outcome memory to decide whether an autonomous agent may hire, pay, or reuse another agent. Every proposed economic action receives exactly one inspectable decision: `APPROVE`, `DENY`, or `ESCALATE`.

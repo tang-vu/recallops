@@ -33,4 +33,14 @@ Commit: `7b28628` (`feat(memory): prove fresh-process Sibyl recall`)
 - Replaced deprecated Starlette test transport fallback with current `httpx2`.
 - Ran 31 tests with 84% coverage, Ruff, mypy strict, Uvicorn HTTP smoke checks, Docker Compose health checks, and `pip-audit --strict`.
 
+Commit: `a2e6306` (`feat(policy): enforce memory-gated commerce actions`)
+
+### 07:35 - Judge-facing control-plane console
+
+- Built the responsive Next.js operations interface around the policy gate rather than a chat layout.
+- Added exact decision evidence, durable receipt metrics, task-scoped counterparty state, integration proof, and fresh-process presenter controls.
+- Kept the Sibyl path and admin token behind a server-side, route-allowlisted control-plane proxy.
+- Ran strict type checking, ESLint, Vitest, a Next.js production build, and Playwright on desktop and mobile.
+- Exercised the real Web -> FastAPI -> Sibyl route: the recalled Session 1 failure denied Agent A with exact evidence.
+
 Commit: pending at the time of this entry.

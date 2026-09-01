@@ -4,7 +4,7 @@ Last updated: 2026-09-01 UTC
 
 ## Current milestone
 
-Milestone 2 complete: Policy control plane
+Milestone 3 complete: Product interface
 
 ## Completed work
 
@@ -24,6 +24,10 @@ Milestone 2 complete: Policy control plane
 - Added durable evaluation idempotency, action-bound execution authorization, receipt expiry, and human approval checks.
 - Added commerce job state transitions, duplicate callback suppression, verifier outcome persistence, and payment gating.
 - Added a production Dockerfile and Compose service with a named Sibyl volume and loopback-only port binding.
+- Added a responsive Next.js control-plane console with overview, request, decision receipt, memory timeline, counterparties, benchmark, integration proof, and demo views.
+- Connected the browser to FastAPI through a server-side allowlisted proxy; Sibyl and the admin token remain server-side.
+- Derived every displayed metric from durable receipts and explicitly labeled unavailable benchmark and partner evidence.
+- Added strict TypeScript, ESLint, Vitest, and Playwright coverage for the critical denial presentation on desktop and mobile.
 
 ## Tests and checks actually run
 
@@ -45,6 +49,13 @@ Milestone 2 complete: Policy control plane
 - Fresh-process integration test with two subprocesses: passed
 - Manual Session 1 run: PID 36244, session `3c81d887-e833-4bc6-a5a1-ae3116128550`, 9 successful Sibyl writes across HOT, WARM, COLD, and REFERENCE
 - Manual Session 2 run: PID 12816, session `103b442a-a359-43fe-b311-5d54f1e40227`, recalled Session 1 failure and denied Agent A
+- TypeScript strict check: passed
+- ESLint with zero warnings: passed
+- Vitest: 3 tests in 2 files passed
+- Next.js production build: passed
+- Playwright: 2 browser projects passed (Chromium desktop and Pixel 7 mobile emulation)
+- Real Web -> FastAPI -> Sibyl proxy smoke test: Sibyl schema 4 was healthy; Agent A returned `DENY` with `REPEATED_FAILURE_FINGERPRINT` and `COUNTERPARTY_ON_PROBATION`, backed by four recalled WARM entities
+- Manual Milestone 3 Session 1: PID 58968, session `8ad5461b-aef0-4243-9a8e-dfdfc382ecec`, 11 successful Sibyl writes
 
 ## Known failures
 
@@ -62,10 +73,9 @@ Milestone 2 complete: Policy control plane
 
 ## Human actions needed
 
-None for completed Milestones 0 through 2.
+None for completed Milestones 0 through 3.
 
 ## Next tasks
 
-- Build the judge-facing Next.js control-plane interface against the real API.
-- Implement the required overview, action, receipt, memory, counterparty, benchmark, integration proof, and demo views.
-- Add Vitest and Playwright coverage for evaluation and fresh-session presentation.
+- Implement the Virtuals port, honest fixture adapter, sanitized CLI adapter, and live setup guide.
+- Keep live ACP execution blocked until its account, signer, wallet, and funding prerequisites are explicitly approved.

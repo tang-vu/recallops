@@ -1,0 +1,74 @@
+export type Decision = "APPROVE" | "DENY" | "ESCALATE";
+
+export interface MemoryEvidence {
+  tier: string;
+  record_type: string;
+  record_name: string;
+  source_session_id: string | null;
+  written_at: string;
+  recalled_at: string;
+  why_it_mattered: string;
+  status: string;
+  content: Record<string, unknown>;
+  content_digest: string;
+}
+
+export interface DecisionReceipt {
+  receipt_id: string;
+  decision: Decision;
+  action_id: string;
+  tenant_id: string;
+  session_id: string;
+  policy_version: string;
+  reason_codes: string[];
+  human_summary: string;
+  memory_evidence: MemoryEvidence[];
+  budget_before: string;
+  budget_after_if_approved: string;
+  counterparty_risk: Record<string, unknown>;
+  memory_snapshot_digest: string;
+  created_at: string;
+  expires_at: string;
+  virtuals_job_id: string | null;
+  base_transaction_hash: string | null;
+}
+
+export interface SystemStatus {
+  service: string;
+  version: string;
+  memory_configured: boolean;
+  memory_healthy: boolean;
+  memory_path_hint: string | null;
+  virtuals_mode: string;
+  base_mode: string;
+  base_chain_id: number;
+  fixture_data: boolean;
+}
+
+export interface JournalEvent {
+  id: string;
+  ts: string;
+  evaluated: string[] | null;
+  acted: string[] | null;
+  extra: Record<string, unknown> | null;
+}
+
+export interface CounterpartyEntity {
+  id: string;
+  status: string | null;
+  body: {
+    provider_id?: string;
+    task_category?: string;
+    failed_jobs?: number;
+    successful_jobs?: number;
+    last_failure_fingerprint?: string;
+    probation_status?: string;
+  };
+  updated_at: string;
+}
+
+export interface EvaluationResponse {
+  receipt: DecisionReceipt;
+  writes: Array<Record<string, string>>;
+  idempotent_replay: boolean;
+}

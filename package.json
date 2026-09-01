@@ -1,0 +1,17 @@
+{
+  "name": "recallops",
+  "private": true,
+  "packageManager": "npm@11.11.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "web:build": "npm --prefix apps/web run build",
+    "web:dev": "npm --prefix apps/web run dev",
+    "web:e2e": "npm --prefix apps/web run test:e2e",
+    "web:lint": "npm --prefix apps/web run lint",
+    "web:test": "npm --prefix apps/web run test",
+    "web:typecheck": "npm --prefix apps/web run typecheck"
+  }
+}

@@ -67,7 +67,7 @@ x402 is a stretch integration, not the critical path. The current Base MCP flow 
 ## Toolchain
 
 - Python 3.12 managed by uv 0.11.8
-- Node.js 24.14.1 and pnpm 11.24.0, compatible with current ACP CLI requirements
+- Node.js 24.14.1 and npm 11.11.0, compatible with current ACP CLI requirements
 - FastAPI and Pydantic v2 for the versioned control-plane API
 - Next.js and strict TypeScript for the operations console
 - Foundry and viem for contracts and application interaction; Foundry is not installed in the inspected environment yet
@@ -83,3 +83,15 @@ Milestone 2 control-plane lock after smoke and test execution:
 - mypy 1.20.2, pytest 8.4.2, pytest-cov 6.3.0, Ruff 0.16.5
 
 The use of `httpx2` is intentional: current Starlette 1.6 emits a deprecation warning when its compatibility fallback imports `httpx`. The current transport was installed and the warning disappeared.
+
+Milestone 3 web lock after local build and browser verification:
+
+- Next.js 16.3.4 and React 19.2.8
+- Tailwind CSS 4.3.3
+- TanStack Query 5.102.8
+- TypeScript 6.0.3 in strict mode
+- Vitest 4.1.11 and Playwright 1.62.1
+- ESLint 9.39.5 with `eslint-config-next` 16.3.4
+- jsdom 29.0.1
+
+npm is the web workspace package manager and `apps/web/package-lock.json` is the reproducible lock. ESLint 10 and the TypeScript 7 prerelease were not selected because the current Next.js lint plugins do not yet declare compatible peer ranges. jsdom 30 was not selected because its current Node engine starts at 24.15 while the inspected environment is Node 24.14.1.

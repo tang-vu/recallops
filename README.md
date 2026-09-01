@@ -92,11 +92,21 @@ Development began at `2026-09-01T06:10:52Z`, inside the official September 1 to 
 
 ## Quick start
 
-The supported control-plane toolchain is Python 3.12 with [uv](https://docs.astral.sh/uv/).
+The supported toolchain is Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node.js 24 with npm.
 
 ```bash
 uv sync --all-packages --all-extras --python 3.12
+npm ci --prefix apps/web
 ```
+
+Start the API and web console in separate terminals:
+
+```bash
+make api
+make web
+```
+
+The web console uses a server-side allowlisted proxy to the control plane. It provides the operations overview, action gate, exact receipt evidence, cross-session timeline, counterparties, benchmark state, integration proof, and presenter controls. See [apps/web/README.md](apps/web/README.md) for environment configuration.
 
 Run the load-bearing proof from the repository root:
 
@@ -123,7 +133,7 @@ Session output is structured JSON. It displays the session UUID, operating-syste
 make check
 ```
 
-The Milestone 1 quality gate runs Ruff formatting and lint, mypy strict mode, real temporary SQLite and FTS5-capable Sibyl integration tests, tenant isolation, decimal policy tests, and the separate-process proof. The latest executed results are recorded in [STATUS.md](STATUS.md).
+The root quality gate runs Ruff formatting and lint, mypy strict mode, real temporary SQLite and FTS5-capable Sibyl integration tests, tenant isolation, decimal policy tests, the separate-process proof, strict TypeScript, ESLint, Vitest, a Next.js production build, and Playwright. The latest executed results are recorded in [STATUS.md](STATUS.md).
 
 ## Partner integration status
 

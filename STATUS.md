@@ -4,7 +4,7 @@ Last updated: 2026-09-01 UTC
 
 ## Current milestone
 
-Milestone 1 complete: Load-bearing memory vertical slice
+Milestone 2 complete: Policy control plane
 
 ## Completed work
 
@@ -19,6 +19,11 @@ Milestone 1 complete: Load-bearing memory vertical slice
 - Implemented Session 1 verifier failure persistence and separate-process Session 2 recall.
 - Proved the recalled Agent A failure changes the economic decision to `DENY` while Agent B receives `APPROVE`.
 - Added safe reset validation restricted to `.data/demo/recallops-demo.db`.
+- Expanded policy rules for revocation, permission expiry and scope, prohibited providers, human exceptions, probation, evidence confidence, and policy conflicts.
+- Added a versioned FastAPI/OpenAPI service with correlation IDs, redacted structured logs, strict request limits, and an admin mutation boundary.
+- Added durable evaluation idempotency, action-bound execution authorization, receipt expiry, and human approval checks.
+- Added commerce job state transitions, duplicate callback suppression, verifier outcome persistence, and payment gating.
+- Added a production Dockerfile and Compose service with a named Sibyl volume and loopback-only port binding.
 
 ## Tests and checks actually run
 
@@ -30,8 +35,11 @@ Milestone 1 complete: Load-bearing memory vertical slice
 - Ruff format check: passed on 17 Python source and test files
 - Ruff lint: passed
 - mypy strict mode: passed on 17 source and test files
-- pytest: 15 passed with 88% statement coverage
+- pytest: 31 passed with 84% statement coverage
 - `pip-audit --strict`: no known vulnerabilities found
+- Uvicorn loopback smoke test: health and versioned OpenAPI passed
+- Docker image build: passed with frozen production dependencies
+- Docker Compose smoke test: container reached `healthy`, Sibyl schema version 4, 22 OpenAPI paths, then stopped cleanly
 - Real Sibyl adapter round trip on temporary SQLite: passed
 - Sibyl tenant isolation: passed
 - Fresh-process integration test with two subprocesses: passed
@@ -43,7 +51,8 @@ Milestone 1 complete: Load-bearing memory vertical slice
 - Foundry and Anvil are not installed yet.
 - A first smoke-test harness exposed that `MemoryClient.storage.close()` must be called explicitly on Windows before deleting a temporary SQLite database. The production adapter will own this lifecycle.
 - GNU Make is not installed in the inspected Windows environment. The Makefile is available for judge and CI environments; equivalent uv commands were executed directly.
-- The policy engine currently implements the Milestone 1 rules. Permission, exception, revocation, replay, and execution state transitions remain Milestone 2 work.
+- Live executor dispatch is intentionally not configured; execution stops at durable `AUTHORIZED` and reports `NOT_DISPATCHED` until the Virtuals adapter lands.
+- Rate limiting is not implemented in-process; current deployment binds to loopback and expects an edge control for public hosting.
 
 ## Live evidence obtained
 
@@ -53,11 +62,10 @@ Milestone 1 complete: Load-bearing memory vertical slice
 
 ## Human actions needed
 
-None for completed Milestones 0 and 1.
+None for completed Milestones 0 through 2.
 
 ## Next tasks
 
-- Implement the complete policy schemas and versioned FastAPI API.
-- Enforce permissions, revocations, exceptions, replay resistance, expiry, idempotency, and execution state transitions.
-- Add structured correlation IDs and secret-redacting JSON logs.
-- Begin the judge-facing Next.js control-plane interface only after Milestone 2 gates pass.
+- Build the judge-facing Next.js control-plane interface against the real API.
+- Implement the required overview, action, receipt, memory, counterparty, benchmark, integration proof, and demo views.
+- Add Vitest and Playwright coverage for evaluation and fresh-session presentation.

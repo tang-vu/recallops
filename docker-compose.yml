@@ -1,0 +1,28 @@
+services:
+  control-plane:
+    build:
+      context: .
+      dockerfile: services/control-plane/Dockerfile
+    environment:
+      RECALLOPS_ADMIN_TOKEN: ${RECALLOPS_ADMIN_TOKEN:-}
+      RECALLOPS_BASE_CHAIN_ID: "84532"
+      RECALLOPS_BASE_MODE: LOCAL ONLY
+      RECALLOPS_MEMORY_DB: /data/recallops.db
+      RECALLOPS_VIRTUALS_MODE: FIXTURE MODE
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - recallops-memory:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  recallops-memory:

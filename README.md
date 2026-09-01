@@ -56,6 +56,24 @@ FastAPI control plane
 
 The browser never accesses the memory database directly. Partner integrations cannot execute before a valid policy receipt exists.
 
+See [the full architecture](docs/architecture.md), [security model](docs/security-model.md), and [judging map](docs/judging-map.md).
+
+## Decision pipeline
+
+RecallOps retrieves owner policy, cumulative budget, permission or revocation, task-scoped counterparty history, human exceptions, and verification state from Sibyl. It evaluates deterministic hard rules, persists the receipt and idempotency mapping, then authorizes at most one matching adapter dispatch. A job must pass verification before payment authorization; a failed result is written back as a future policy consequence.
+
+Natural-language rationale is never policy authority. Requests asking the agent to ignore memory remain inert strings.
+
+## Memory data model
+
+- HOT: current process and demo workflow state
+- WARM: policies, budgets, permissions, exceptions, counterparty profiles, failure fingerprints, decisions, jobs, and idempotency records
+- COLD: chronological policy, verifier, decision, authorization, and job transition events
+- REFERENCE: versioned policy schema metadata
+- ARCHIVE: superseded permissions and expired lifecycle records as policy management is completed
+
+Entity names are deterministic and tenant isolation is enforced by Sibyl's schema. Details and exact calls are in [docs/memory-implementation.md](docs/memory-implementation.md).
+
 ## Repository layout
 
 ```text

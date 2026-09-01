@@ -25,7 +25,11 @@ All calls live in [`memory/sibyl_store.py`](../services/control-plane/src/recall
 | WARM | Budget account | `set_entity("budget_account", ...)` / `get_entity(...)` | Durable cumulative spend and active window |
 | WARM | Failure fingerprint | `set_entity("failure_fingerprint", ...)` / `get_entity(...)` | Denies the same provider, category, and task fingerprint |
 | WARM | Counterparty profile | `set_entity("counterparty_profile", ...)` | Task-specific probation consequence |
+| WARM | Permission grant or revocation | `set_entity("permission_grant", ...)` / `get_entity(...)` | Agent, provider, category, and validity scope |
+| WARM | Human exception and approval | `set_entity("human_exception", ...)` / `set_entity("human_approval", ...)` | Scoped override evidence; never a broad policy bypass |
 | WARM | Decision receipt | `set_entity("decision_receipt", ...)` | Cross-session audit and future replay protection |
+| WARM | Idempotency and execution authorization | `set_entity(...)` / `get_entity(...)` | Exactly-once request binding before adapter dispatch |
+| WARM | Commerce job | `set_entity("commerce_job", ...)` | Callback deduplication, verification, and payment state |
 | COLD | Policy, budget, verification, and decision events | `write_event(...)` | Chronological audit timeline |
 | REFERENCE | Versioned policy schema metadata | `set_reference(...)` | Names the decision set and decimal encoding |
 | ARCHIVE | Superseded records | Not called in Milestone 1 | `archive_entity(...)` will be wrapped when policy lifecycle APIs arrive in Milestone 2 |

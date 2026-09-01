@@ -11,6 +11,7 @@ from recallops.demo.common import (
     TASK_CATEGORY,
     TASK_FINGERPRINT,
     budget,
+    permission_grant,
     policy,
     process_metadata,
     resolve_database,
@@ -45,6 +46,7 @@ def run(database: str, tenant_id: str = DEMO_TENANT) -> dict[str, object]:
         )
         writes.extend(memory.write_policy(policy(), str(current_session)))
         writes.extend(memory.write_budget(budget(current_session)))
+        writes.extend(memory.write_permission(permission_grant(current_session)))
         writes.extend(
             memory.write_failure(
                 FailureFingerprint(

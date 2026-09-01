@@ -8,6 +8,7 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | --- | --- | --- |
 | Sibyl Memory | Local 0.8.0 four-tier smoke test | Obtained |
 | Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
+| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 31 automated tests pass |
 | Virtuals ACP | Real job ID and verifiable link | Not obtained; fixture work will be labeled |
 | Base Sepolia | Contract address and transaction hash | Not obtained |
 

@@ -73,3 +73,13 @@ x402 is a stretch integration, not the critical path. The current Base MCP flow 
 - Foundry and viem for contracts and application interaction; Foundry is not installed in the inspected environment yet
 
 Versions beyond the packages above will be locked when their workspace is introduced and smoke-tested.
+
+Milestone 2 control-plane lock after smoke and test execution:
+
+- FastAPI 0.141.1
+- Pydantic 2.13.5
+- Uvicorn 0.52.4
+- `httpx2` 2.12.0 for Starlette's current TestClient transport
+- mypy 1.20.2, pytest 8.4.2, pytest-cov 6.3.0, Ruff 0.16.5
+
+The use of `httpx2` is intentional: current Starlette 1.6 emits a deprecation warning when its compatibility fallback imports `httpx`. The current transport was installed and the warning disappeared.

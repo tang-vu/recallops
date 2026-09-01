@@ -18,9 +18,11 @@ class CommerceGuard:
         try:
             context = self._memory.load_evaluation_context(
                 owner_id=action.owner_id,
+                requesting_agent_id=action.requesting_agent_id,
                 provider_id=action.provider_id,
                 task_category=action.task_category,
                 task_fingerprint=action.task_fingerprint,
+                permission=action.permission,
             )
         except MemorySubsystemError:
             return (

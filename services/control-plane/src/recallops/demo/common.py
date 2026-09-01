@@ -10,7 +10,7 @@ from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from recallops.models import BudgetAccount, OwnerPolicy, ProposedAction
+from recallops.models import BudgetAccount, OwnerPolicy, PermissionGrant, ProposedAction
 
 DEMO_TENANT = "recallops-demo"
 DEMO_OWNER = "vu-tang"
@@ -70,6 +70,21 @@ def budget(current_session_id: UUID, now: datetime | None = None) -> BudgetAccou
         spent=Decimal("0.00"),
         window_started_at=active_policy.window_started_at,
         window_ends_at=active_policy.window_ends_at,
+        source_session_id=current_session_id,
+    )
+
+
+def permission_grant(current_session_id: UUID, now: datetime | None = None) -> PermissionGrant:
+    current = now or datetime.now(UTC) - timedelta(minutes=1)
+    return PermissionGrant(
+        tenant_id=DEMO_TENANT,
+        owner_id=DEMO_OWNER,
+        requesting_agent_id=DEMO_AGENT,
+        permission="hire-agent",
+        provider_id=None,
+        task_categories=(TASK_CATEGORY,),
+        valid_from=current,
+        expires_at=current + timedelta(days=1),
         source_session_id=current_session_id,
     )
 

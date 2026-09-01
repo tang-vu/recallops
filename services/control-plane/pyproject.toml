@@ -11,13 +11,16 @@ requires-python = ">=3.12,<3.15"
 license = { text = "MIT" }
 authors = [{ name = "Vu Tang" }]
 dependencies = [
+  "fastapi>=0.120,<1",
   "pydantic>=2.11,<3",
   "sibyl-memory-client==0.8.0",
+  "uvicorn>=0.35,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
   "mypy>=1.17,<2",
+  "httpx2>=2.12,<3",
   "pytest>=8.4,<9",
   "pytest-cov>=6.2,<7",
   "ruff>=0.12,<1",

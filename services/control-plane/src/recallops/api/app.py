@@ -27,6 +27,7 @@ from recallops.api.schemas import (
     BenchmarkReport,
     BenchmarkUnavailable,
     BudgetWriteRequest,
+    CounterpartyRetirementRequest,
     DemoProcessResponse,
     EvaluationResponse,
     ExceptionWriteRequest,
@@ -36,6 +37,7 @@ from recallops.api.schemas import (
     JobResponse,
     JobVerificationRequest,
     JobWriteRequest,
+    LifecycleArchiveRequest,
     MemoryWriteResponse,
     PermissionWriteRequest,
     PolicyWriteRequest,
@@ -314,6 +316,33 @@ def create_app(
     def write_exception(payload: ExceptionWriteRequest) -> MemoryWriteResponse:
         with store(payload.exception.tenant_id) as memory:
             writes = memory.write_exception(payload.exception)
+        return MemoryWriteResponse(writes=tuple(writes))
+
+    @application.post(
+        "/v1/memory/archive-expired",
+        response_model=MemoryWriteResponse,
+        dependencies=[Depends(require_admin)],
+    )
+    def archive_expired_records(payload: LifecycleArchiveRequest) -> MemoryWriteResponse:
+        with store(payload.tenant_id) as memory:
+            writes = memory.archive_expired_records(payload.at)
+        return MemoryWriteResponse(writes=tuple(writes))
+
+    @application.post(
+        "/v1/counterparties/retire",
+        response_model=MemoryWriteResponse,
+        dependencies=[Depends(require_admin)],
+    )
+    def retire_counterparty(payload: CounterpartyRetirementRequest) -> MemoryWriteResponse:
+        try:
+            with store(payload.tenant_id) as memory:
+                writes = memory.retire_counterparty(
+                    payload.provider_id,
+                    payload.task_category,
+                    payload.reason,
+                )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
         return MemoryWriteResponse(writes=tuple(writes))
 
     @application.post(

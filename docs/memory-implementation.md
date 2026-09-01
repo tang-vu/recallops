@@ -34,7 +34,7 @@ All calls live in [`memory/sibyl_store.py`](../services/control-plane/src/recall
 | WARM | Commerce job | `set_entity("commerce_job", ...)` | Callback deduplication, verification, and payment state |
 | COLD | Policy, action, decision, authorization, ACP, and verification events | `write_event(...)` | Chronological audit timeline and approval-before-dispatch trace |
 | REFERENCE | Versioned policy schema metadata | `set_reference(...)` | Names the decision set and decimal encoding |
-| ARCHIVE | Superseded records | Not called in Milestone 1 | `archive_entity(...)` will be wrapped when policy lifecycle APIs arrive in Milestone 2 |
+| ARCHIVE | Superseded policy and permission records, expired permissions and exceptions, retired counterparties | `archive_entity(...)` | Preserves lifecycle history outside the active decision set; every explicit lifecycle archive also writes a COLD event |
 
 The 0.8.0 client returns a `NotFoundError` for missing entities. The adapter translates a missing expected record to `None`, which produces `ESCALATE` for mandatory policy or budget state. Other SDK exceptions become `MemorySubsystemError` and fail closed.
 
@@ -72,3 +72,7 @@ Pydantic validates money as `Decimal` with six fractional places and serializes 
 These hashes make changes detectable within RecallOps artifacts. After an approved job passes verification, the separate Base boundary may anchor a receipt digest and persist its confirmed transaction back to WARM and COLD Sibyl records. Local Anvil proof exists; public Base Sepolia proof does not yet exist.
 
 Counterparty probation is stored as a task-scoped WARM profile with explicit start, end, and status fields. A verified failure starts a seven-day probation record; an ended profile can restore eligibility without erasing the underlying journal history.
+
+## Lifecycle archive
+
+Writing a changed policy, permission, exception, or explicit counterparty lifecycle state archives the prior WARM entity before installing its replacement. Identical bodies are not archived. The admin-gated `POST /v1/memory/archive-expired` endpoint moves expired or revoked permissions and human exceptions out of the active decision set. `POST /v1/counterparties/retire` archives a task-scoped profile while leaving its failure fingerprints and COLD events intact. Both operations remain tenant-isolated through the same Sibyl client.

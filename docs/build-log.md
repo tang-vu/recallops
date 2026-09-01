@@ -80,3 +80,12 @@ Commit: `5aab07a` (`feat(base): anchor verified decision receipts`)
 Commit: `e403931` (`test: add cross-session deletion benchmark`)
 
 All Python, web, browser, Solidity, viem, and dependency gates then passed in [GitHub Actions run 33492189813](https://github.com/tang-vu/recallops/actions/runs/33492189813).
+
+### 09:37 - Completed the five-tier memory lifecycle
+
+- Wrapped Sibyl 0.8.0 `archive_entity(...)` in the production adapter.
+- Archived changed policies, permissions, exceptions, and counterparty lifecycle states before replacement.
+- Added admin-gated lifecycle operations for expired or revoked permission and exception records, plus explicit counterparty retirement.
+- Verified that retirement removes the active profile while retaining the failure fingerprint that still protects future decisions.
+
+Commit: recorded in Git history as `feat(memory): archive superseded lifecycle records`.

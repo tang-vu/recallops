@@ -83,6 +83,59 @@ def test_admin_mutations_are_disabled_when_token_is_unconfigured(tmp_path: Path)
     assert "disabled" in response.json()["detail"]
 
 
+def test_admin_lifecycle_routes_archive_expired_records_and_retired_profiles(
+    tmp_path: Path,
+) -> None:
+    client, database = client_for(tmp_path)
+    now = datetime.now(UTC)
+    expired_permission = permission_grant(uuid4(), now - timedelta(days=2))
+    permission_response = client.post(
+        "/v1/permissions",
+        headers=ADMIN_HEADERS,
+        json={"permission": expired_permission.model_dump(mode="json")},
+    )
+    archive_response = client.post(
+        "/v1/memory/archive-expired",
+        headers=ADMIN_HEADERS,
+        json={"tenant_id": DEMO_TENANT, "at": now.isoformat()},
+    )
+
+    with SibylMemoryStore(database, DEMO_TENANT) as memory:
+        memory.write_failure(
+            FailureFingerprint(
+                tenant_id=DEMO_TENANT,
+                provider_id="agent-retired",
+                task_category="security-review",
+                task_fingerprint="sha256:retirement-api-test",
+                verifier_id="verifier-v1",
+                verification_reason="Evidence missing.",
+                source_session_id=uuid4(),
+            )
+        )
+    retirement_response = client.post(
+        "/v1/counterparties/retire",
+        headers=ADMIN_HEADERS,
+        json={
+            "tenant_id": DEMO_TENANT,
+            "provider_id": "agent-retired",
+            "task_category": "security-review",
+            "reason": "Owner retired this provider",
+        },
+    )
+
+    assert permission_response.status_code == 200
+    assert archive_response.status_code == 200
+    assert [write["tier"] for write in archive_response.json()["writes"]] == [
+        "ARCHIVE",
+        "COLD",
+    ]
+    assert retirement_response.status_code == 200
+    assert [write["tier"] for write in retirement_response.json()["writes"]] == [
+        "ARCHIVE",
+        "COLD",
+    ]
+
+
 def test_benchmark_endpoint_validates_the_persisted_artifact(tmp_path: Path) -> None:
     artifact = tmp_path / "benchmark.json"
     missing_client = TestClient(

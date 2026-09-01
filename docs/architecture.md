@@ -81,7 +81,7 @@ Sibyl Memory owns every production fact that can change an economic decision:
 | WARM | Policies, budgets, permissions, exceptions, failure fingerprints, timed counterparty probation profiles, decisions, idempotency records, execution authorizations, jobs, Base anchors |
 | COLD | Chronological policy, verification, decision, authorization, and job transition events |
 | REFERENCE | Versioned policy schema and risk definition metadata |
-| ARCHIVE | Superseded permissions, expired exceptions, and retired counterparties as lifecycle APIs are completed |
+| ARCHIVE | Superseded policies and permissions, expired exceptions, and retired counterparties through explicit lifecycle APIs |
 
 No PostgreSQL, Redis, browser storage, or shadow SQLite schema reproduces this function in production.
 

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
-from sibyl_memory_client import MemoryClient
+from sibyl_memory_client import MemoryClient, NotFoundError
 
 from recallops.memory.port import MemorySubsystemError
 from recallops.models import (
@@ -102,11 +102,45 @@ class SibylMemoryStore:
         except Exception as exc:
             raise MemorySubsystemError("Failed to write active session to Sibyl HOT state") from exc
 
+    def _archive_if_changed(
+        self,
+        category: str,
+        entity_name: str,
+        replacement_body: dict[str, Any],
+        reason: str,
+    ) -> dict[str, Any] | None:
+        try:
+            existing = self._client.get_entity(category, entity_name)
+        except NotFoundError:
+            return None
+        if _canonical_json(existing["body"]) == _canonical_json(replacement_body):
+            return None
+        return cast(
+            dict[str, Any],
+            self._client.archive_entity(category, entity_name, reason=reason),
+        )
+
+    def _archive_write(
+        self, category: str, entity_name: str, archive: dict[str, Any]
+    ) -> dict[str, str]:
+        return self._write_result(
+            MemoryTier.ARCHIVE,
+            category,
+            entity_name,
+            str(archive["archived_id"]),
+        )
+
     def write_policy(self, policy: OwnerPolicy, source_session_id: str) -> list[dict[str, str]]:
         entity_name = _stable_name("owner-policy", policy.owner_id)
         reference_name = f"recallops:policy-schema:{policy.version}"
         body = policy.model_dump(mode="json") | {"source_session_id": source_session_id}
         try:
+            archived = self._archive_if_changed(
+                "owner_policy",
+                entity_name,
+                body,
+                f"Superseded by owner policy {policy.version}",
+            )
             # WARM write: stable owner policy keyed deterministically per tenant and owner.
             entity = self._client.set_entity("owner_policy", entity_name, body, status="active")
             # REFERENCE write: named policy definition required to interpret the entity.
@@ -126,13 +160,16 @@ class SibylMemoryStore:
             )
         except Exception as exc:
             raise MemorySubsystemError("Failed to write owner policy to Sibyl") from exc
-        return [
+        writes = [
             self._write_result(MemoryTier.WARM, "owner_policy", entity_name, entity["id"]),
             self._write_result(
                 MemoryTier.REFERENCE, "policy_schema", reference_name, reference_name
             ),
             self._write_result(MemoryTier.COLD, "POLICY_STORED", event_id, event_id),
         ]
+        return (
+            [self._archive_write("owner_policy", entity_name, archived)] if archived else []
+        ) + writes
 
     def write_budget(self, account: BudgetAccount) -> list[dict[str, str]]:
         entity_name = _stable_name("budget-account", account.owner_id, account.currency)
@@ -224,11 +261,18 @@ class SibylMemoryStore:
     def write_counterparty_profile(self, profile: CounterpartyProfile) -> list[dict[str, str]]:
         entity_name = _stable_name("counterparty", profile.provider_id, profile.task_category)
         status = "probation" if profile.probation_status == "active" else "active"
+        body = profile.model_dump(mode="json")
         try:
+            archived = self._archive_if_changed(
+                "counterparty_profile",
+                entity_name,
+                body,
+                f"Superseded by {profile.probation_status} counterparty lifecycle state",
+            )
             entity = self._client.set_entity(
                 "counterparty_profile",
                 entity_name,
-                profile.model_dump(mode="json"),
+                body,
                 status=status,
             )
             event_id = self._client.write_event(
@@ -246,12 +290,15 @@ class SibylMemoryStore:
             )
         except Exception as exc:
             raise MemorySubsystemError("Failed to update counterparty probation in Sibyl") from exc
-        return [
+        writes = [
             self._write_result(MemoryTier.WARM, "counterparty_profile", entity_name, entity["id"]),
             self._write_result(
                 MemoryTier.COLD, "COUNTERPARTY_PROBATION_UPDATED", event_id, event_id
             ),
         ]
+        return (
+            [self._archive_write("counterparty_profile", entity_name, archived)] if archived else []
+        ) + writes
 
     def write_permission(self, grant: PermissionGrant) -> list[dict[str, str]]:
         entity_name = _stable_name(
@@ -263,10 +310,15 @@ class SibylMemoryStore:
         )
         status = "revoked" if grant.revoked_at is not None else "active"
         event_type = "PERMISSION_REVOKED" if grant.revoked_at is not None else "PERMISSION_GRANTED"
+        body = grant.model_dump(mode="json")
         try:
-            entity = self._client.set_entity(
-                "permission_grant", entity_name, grant.model_dump(mode="json"), status=status
+            archived = self._archive_if_changed(
+                "permission_grant",
+                entity_name,
+                body,
+                f"Superseded {grant.permission} permission",
             )
+            entity = self._client.set_entity("permission_grant", entity_name, body, status=status)
             event_id = self._client.write_event(
                 acted=[f"{event_type}: {grant.permission} for {grant.requesting_agent_id}"],
                 extra={
@@ -277,10 +329,13 @@ class SibylMemoryStore:
             )
         except Exception as exc:
             raise MemorySubsystemError("Failed to write permission grant to Sibyl") from exc
-        return [
+        writes = [
             self._write_result(MemoryTier.WARM, "permission_grant", entity_name, entity["id"]),
             self._write_result(MemoryTier.COLD, event_type, event_id, event_id),
         ]
+        return (
+            [self._archive_write("permission_grant", entity_name, archived)] if archived else []
+        ) + writes
 
     def write_exception(self, exception: HumanException) -> list[dict[str, str]]:
         entity_name = _stable_name(
@@ -291,10 +346,15 @@ class SibylMemoryStore:
             exception.task_fingerprint or "*",
         )
         status = "revoked" if exception.revoked_at is not None else "active"
+        body = exception.model_dump(mode="json")
         try:
-            entity = self._client.set_entity(
-                "human_exception", entity_name, exception.model_dump(mode="json"), status=status
+            archived = self._archive_if_changed(
+                "human_exception",
+                entity_name,
+                body,
+                "Superseded human exception",
             )
+            entity = self._client.set_entity("human_exception", entity_name, body, status=status)
             event_id = self._client.write_event(
                 acted=[f"Human exception recorded for {exception.provider_id}"],
                 extra={
@@ -306,9 +366,78 @@ class SibylMemoryStore:
             )
         except Exception as exc:
             raise MemorySubsystemError("Failed to write human exception to Sibyl") from exc
-        return [
+        writes = [
             self._write_result(MemoryTier.WARM, "human_exception", entity_name, entity["id"]),
             self._write_result(MemoryTier.COLD, "HUMAN_EXCEPTION_RECORDED", event_id, event_id),
+        ]
+        return (
+            [self._archive_write("human_exception", entity_name, archived)] if archived else []
+        ) + writes
+
+    def archive_expired_records(self, at: datetime) -> list[dict[str, str]]:
+        if at.tzinfo is None or at.utcoffset() is None:
+            raise ValueError("Lifecycle archive timestamp must be timezone-aware")
+        writes: list[dict[str, str]] = []
+        try:
+            for category in ("permission_grant", "human_exception"):
+                for entity in self._client.list_entities(category=category, limit=1_000):
+                    body = cast(dict[str, Any], entity["body"])
+                    expires_at = body.get("expires_at")
+                    revoked_at = body.get("revoked_at")
+                    expired = isinstance(expires_at, str) and _parse_timestamp(expires_at) <= at
+                    if not expired and revoked_at is None:
+                        continue
+                    reason = "Expired lifecycle record" if expired else "Revoked lifecycle record"
+                    archive = self._client.archive_entity(category, entity["name"], reason=reason)
+                    event_id = self._client.write_event(
+                        acted=[f"Archived {category} {entity['name']}: {reason}"],
+                        extra={
+                            "event_type": "LIFECYCLE_RECORD_ARCHIVED",
+                            "category": category,
+                            "entity_name": entity["name"],
+                            "archive_reason": reason,
+                        },
+                    )
+                    writes.extend(
+                        [
+                            self._archive_write(category, entity["name"], archive),
+                            self._write_result(
+                                MemoryTier.COLD,
+                                "LIFECYCLE_RECORD_ARCHIVED",
+                                event_id,
+                                event_id,
+                            ),
+                        ]
+                    )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to archive expired Sibyl lifecycle records") from exc
+        return writes
+
+    def retire_counterparty(
+        self, provider_id: str, task_category: str, reason: str
+    ) -> list[dict[str, str]]:
+        entity_name = _stable_name("counterparty", provider_id, task_category)
+        try:
+            archive = self._client.archive_entity(
+                "counterparty_profile", entity_name, reason=reason
+            )
+            event_id = self._client.write_event(
+                acted=[f"Retired counterparty {provider_id} for {task_category}"],
+                extra={
+                    "event_type": "COUNTERPARTY_RETIRED",
+                    "entity_name": entity_name,
+                    "provider_id": provider_id,
+                    "task_category": task_category,
+                    "archive_reason": reason,
+                },
+            )
+        except NotFoundError as exc:
+            raise ValueError("Counterparty profile does not exist") from exc
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to retire counterparty in Sibyl") from exc
+        return [
+            self._archive_write("counterparty_profile", entity_name, archive),
+            self._write_result(MemoryTier.COLD, "COUNTERPARTY_RETIRED", event_id, event_id),
         ]
 
     def load_evaluation_context(

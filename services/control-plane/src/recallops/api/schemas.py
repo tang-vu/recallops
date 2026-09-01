@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import AwareDatetime, Field
 
 from recallops.integrations.virtuals import VirtualsJobSnapshot
 from recallops.models import (
@@ -39,6 +39,18 @@ class PermissionWriteRequest(StrictModel):
 
 class ExceptionWriteRequest(StrictModel):
     exception: HumanException
+
+
+class LifecycleArchiveRequest(StrictModel):
+    tenant_id: str = Field(min_length=1, max_length=128)
+    at: AwareDatetime
+
+
+class CounterpartyRetirementRequest(StrictModel):
+    tenant_id: str = Field(min_length=1, max_length=128)
+    provider_id: str = Field(min_length=1, max_length=128)
+    task_category: str = Field(min_length=1, max_length=128)
+    reason: str = Field(min_length=1, max_length=512)
 
 
 class ApprovalWriteRequest(StrictModel):

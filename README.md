@@ -32,7 +32,7 @@ The first vertical slice is built before the dashboard:
 
 Production reads and writes are easy to locate in:
 
-- [Sibyl production adapter](services/control-plane/src/recallops/memory/sibyl_store.py): explicit HOT, WARM, COLD, and REFERENCE SDK calls
+- [Sibyl production adapter](services/control-plane/src/recallops/memory/sibyl_store.py): explicit HOT, WARM, COLD, REFERENCE, and ARCHIVE SDK calls
 - [Deterministic policy engine](services/control-plane/src/recallops/policy/engine.py): evidence-backed decision semantics
 - [Commerce guard](services/control-plane/src/recallops/orchestration/guard.py): mandatory read, evaluate, persist ordering and fail-closed behavior
 - [Fresh-process integration test](services/control-plane/tests/test_fresh_process.py): Process A writes and exits; Process B recalls and changes the decision
@@ -73,7 +73,7 @@ Natural-language rationale is never policy authority. Requests asking the agent 
 - WARM: policies, budgets, permissions, exceptions, counterparty profiles, failure fingerprints, decisions, jobs, and idempotency records
 - COLD: chronological policy, verifier, decision, authorization, and job transition events
 - REFERENCE: versioned policy schema metadata
-- ARCHIVE: superseded permissions and expired lifecycle records as policy management is completed
+- ARCHIVE: superseded policies and permissions, expired lifecycle records, and retired counterparty profiles through real `archive_entity(...)` calls
 
 Entity names are deterministic and tenant isolation is enforced by Sibyl's schema. Details and exact calls are in [docs/memory-implementation.md](docs/memory-implementation.md).
 

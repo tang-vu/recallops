@@ -47,6 +47,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Added least-privilege GitHub Actions quality gates with commit-pinned actions for the Python control plane, web console, browser flow, Solidity registry, viem bridge, and dependency audits.
 - Created one hackathon milestone and four narrowly scoped GitHub issues for the remaining human-controlled evidence and submission actions.
 - Pushed release commit `e403931` and passed all three jobs in [GitHub Actions run 33492189813](https://github.com/tang-vu/recallops/actions/runs/33492189813).
+- Completed the fifth Sibyl tier with production `archive_entity(...)` calls for superseded records, expired permission/exception lifecycle records, and retired counterparties.
 
 ## Tests and checks actually run
 
@@ -99,13 +100,14 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Stateless benchmark comparator: measured 100% unsafe repeats, 50% budget violations, 41.67% decision accuracy, and 0% durable evidence completeness
 - Benchmark-focused tests: 3 passed, including artifact export and deletion behavior
 - Deletion test: passed with production `ESCALATE` / `MEMORY_READ_FAILED` and stateless `APPROVE`
-- Final release-candidate backend gate: Ruff format and lint passed on 40 files, mypy strict passed on 40 files, and 49 pytest tests passed with 84% statement coverage
+- Final release-candidate backend gate: Ruff format and lint passed on 40 files, mypy strict passed on 40 files, and 52 pytest tests passed with 84% statement coverage
 - Final release-candidate web gate: strict TypeScript, ESLint, 3 Vitest tests, production build, 2 Playwright projects, and npm audit passed
 - Final release-candidate contract gate: Foundry format/lint, 13 tests with 1,024 total fuzz cases, gas snapshot, viem type/test/build, and npm audit passed
 - The checksum-verified actionlint 1.7.12 release validated `.github/workflows/ci.yml` with no findings
 - Local Markdown link validation passed, `git diff --check` passed, tracked secret-like filename review found only `.env.example` templates, and the high-confidence secret assignment scan found no match
 - GitHub-hosted Ubuntu CI passed the Python control plane, web console with Playwright, and receipt registry jobs on release commit `e403931`
 - A fresh clone of release commit `e403931` synced from the frozen lock on Python 3.12.13, stayed clean, and passed all three documentation and local-link tests
+- Real Sibyl ARCHIVE integration tests passed for superseded and expired permissions plus counterparty retirement; the retained failure fingerprint still changes future evaluation
 
 ## Known failures
 

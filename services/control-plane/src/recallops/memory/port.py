@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol
 
 from recallops.models import (
@@ -45,6 +46,12 @@ class MemoryPort(Protocol):
     def write_permission(self, grant: PermissionGrant) -> list[dict[str, str]]: ...
 
     def write_exception(self, exception: HumanException) -> list[dict[str, str]]: ...
+
+    def archive_expired_records(self, at: datetime) -> list[dict[str, str]]: ...
+
+    def retire_counterparty(
+        self, provider_id: str, task_category: str, reason: str
+    ) -> list[dict[str, str]]: ...
 
     def load_evaluation_context(
         self,

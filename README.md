@@ -146,9 +146,11 @@ Live dispatch is restricted to Base Sepolia and disabled by default even when `L
 
 ### Base integration
 
-Base Sepolia is not yet claimed. Contract implementation and local Foundry proof are the next milestone; no testnet deployment or transaction has occurred.
+`RecallOpsReceiptRegistry.sol` is implemented and locally proven. It accepts only non-sensitive digests, permits only Anvil `31337` or Base Sepolia `84532`, validates the chain at deployment and call time, restricts writes to one immutable submitter, treats an exact retry as a no-op, and rejects conflicting receipt reuse. The FastAPI anchor endpoint requires an `APPROVE` receipt, successful action-bound execution, a durable ACP job, and `VERIFIED_PASSED` before it invokes the typed viem client. The confirmed transaction is then written back to Sibyl.
 
-No real Virtuals ACP job or Base transaction has been recorded, so neither partner multiplier is claimed. Real identifiers will appear only after verifiable actions exist.
+The local Anvil deployment and viem transaction are reproducible but are not partner evidence. Base Sepolia signing remains disabled behind explicit configuration and approval gates. See [the deployment and approval guide](docs/base-deployment.md) and [local evidence](docs/evidence/base-local.md).
+
+No real Virtuals ACP job or public Base Sepolia transaction has been recorded, so neither partner multiplier is claimed. Real identifiers will appear only after verifiable actions exist.
 
 ## Security and privacy
 

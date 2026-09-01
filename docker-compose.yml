@@ -5,8 +5,7 @@ services:
       dockerfile: services/control-plane/Dockerfile
     environment:
       RECALLOPS_ADMIN_TOKEN: ${RECALLOPS_ADMIN_TOKEN:-}
-      RECALLOPS_BASE_CHAIN_ID: "84532"
-      RECALLOPS_BASE_MODE: LOCAL ONLY
+      RECALLOPS_BASE_MODE: NOT CONFIGURED
       RECALLOPS_MEMORY_DB: /data/recallops.db
       RECALLOPS_VIRTUALS_MODE: FIXTURE MODE
     ports:

@@ -6,6 +6,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { ApiError, apiRequest } from "@/lib/api";
 import { summarizeDecisions } from "@/lib/metrics";
 import type {
+  BaseAnchorRecord,
   CounterpartyEntity,
   Decision,
   DecisionReceipt,
@@ -77,6 +78,11 @@ export function ControlPlaneDashboard() {
 
   const metrics = useMemo(() => summarizeDecisions(decisionsQuery.data ?? []), [decisionsQuery.data]);
   const latestReceipt = receipt ?? decisionsQuery.data?.[0] ?? null;
+  const anchorQuery = useQuery({
+    queryKey: ["base-anchor", latestReceipt?.receipt_id],
+    queryFn: () => apiRequest<BaseAnchorRecord>(`v1/decisions/${latestReceipt?.receipt_id}/anchor?tenant_id=${TENANT_ID}`),
+    enabled: Boolean(latestReceipt?.base_transaction_hash),
+  });
 
   const evaluateMutation = useMutation({
     mutationFn: async () => {
@@ -203,7 +209,7 @@ export function ControlPlaneDashboard() {
           <div className="mode-row" aria-label="Integration modes">
             <span className={`mode-badge ${connected ? "live" : "danger"}`}>SIBYL {connected ? "HEALTHY" : "UNAVAILABLE"}</span>
             <span className="mode-badge fixture">{status?.virtuals_mode ?? "FIXTURE MODE"}</span>
-            <span className="mode-badge local">BASE {status?.base_mode ?? "LOCAL ONLY"}</span>
+            <span className="mode-badge local">BASE {status?.base_mode ?? "NOT CONFIGURED"}</span>
           </div>
         </header>
 
@@ -279,7 +285,7 @@ export function ControlPlaneDashboard() {
             <div className="integration-grid">
               <IntegrationCard name="Sibyl Memory" status={connected ? "VERIFIED LOCAL" : "UNAVAILABLE"} tone={connected ? "green" : "red"} rows={[["Database", status?.memory_path_hint ?? "Redacted"], ["Runtime", "sibyl-memory-client 0.8.0"], ["Evidence", "Reads and writes on critical path"]]} />
               <IntegrationCard name="Virtuals ACP" status={status?.virtuals_mode ?? "FIXTURE MODE"} tone={latestJob?.integration_mode === "LIVE VIRTUALS" ? "green" : "amber"} rows={[["ACP job", latestJob?.job_id ?? "No job recorded"], ["Adapter", "ACP CLI boundary ready"], ["Claim", latestJob?.integration_mode === "LIVE VIRTUALS" ? "Live evidence recorded" : "Not claimed"]]} />
-              <IntegrationCard name="Base" status={status?.base_mode ?? "LOCAL ONLY"} tone="amber" rows={[["Network", `Base Sepolia · ${status?.base_chain_id ?? 84532}`], ["Transaction", "No real transaction recorded"], ["Claim", "Not claimed"]]} />
+              <IntegrationCard name="Base" status={status?.base_mode ?? "NOT CONFIGURED"} tone={status?.base_mode === "BASE SEPOLIA" && latestReceipt?.base_transaction_hash ? "green" : "amber"} rows={[["Network", `${status?.base_mode ?? "Not configured"} · ${status?.base_chain_id ?? 84532}`], ["Transaction", latestReceipt?.base_transaction_hash ?? "No transaction recorded"], ["Claim", status?.base_mode === "BASE SEPOLIA" && latestReceipt?.base_transaction_hash ? "Live evidence recorded" : "Not claimed"]]} explorerUrl={anchorQuery.data?.explorer_url} />
             </div>
           </section>
 
@@ -321,6 +327,6 @@ function BenchmarkColumn({ title, tone }: { title: string; tone: string }) {
   return <article className={`benchmark-column ${tone}`}><h3>{title}</h3>{["Unsafe repeat rate", "Budget violation rate", "Decision accuracy", "Evidence completeness", "Latency"].map((label) => <div key={label}><span>{label}</span><strong>Not run</strong></div>)}</article>;
 }
 
-function IntegrationCard({ name, status, tone, rows }: { name: string; status: string; tone: string; rows: string[][] }) {
-  return <article className="integration-card"><div><h3>{name}</h3><span className={`status-pill ${tone}`}>{status}</span></div><dl>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></article>;
+function IntegrationCard({ name, status, tone, rows, explorerUrl }: { name: string; status: string; tone: string; rows: string[][]; explorerUrl?: string | null }) {
+  return <article className="integration-card"><div><h3>{name}</h3><span className={`status-pill ${tone}`}>{status}</span></div><dl>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>{explorerUrl && <a href={explorerUrl} target="_blank" rel="noreferrer">Open official explorer proof</a>}</article>;
 }

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from recallops.models import (
+    BaseAnchorRecord,
     BudgetAccount,
     DecisionReceipt,
     EvaluationContext,
@@ -74,6 +75,10 @@ class MemoryPort(Protocol):
     ) -> list[dict[str, str]]: ...
 
     def get_execution_authorization(self, receipt_id: str) -> ExecutionAuthorization | None: ...
+
+    def write_base_anchor(self, anchor: BaseAnchorRecord) -> list[dict[str, str]]: ...
+
+    def get_base_anchor(self, receipt_id: str) -> BaseAnchorRecord | None: ...
 
     def write_idempotency_record(self, record: IdempotencyRecord) -> list[dict[str, str]]: ...
 

@@ -10,6 +10,7 @@ from pydantic import Field
 
 from recallops.integrations.virtuals import VirtualsJobSnapshot
 from recallops.models import (
+    BaseAnchorRecord,
     BudgetAccount,
     DecisionReceipt,
     ExecutionAuthorization,
@@ -66,6 +67,16 @@ class ExecutionAuthorizationResponse(StrictModel):
     note: str
     job: JobRecord | None = None
     virtuals_snapshot: VirtualsJobSnapshot | None = None
+
+
+class BaseAnchorRequestBody(StrictModel):
+    action_id: UUID
+
+
+class BaseAnchorResponse(StrictModel):
+    anchor: BaseAnchorRecord
+    writes: tuple[dict[str, str], ...]
+    idempotent_replay: bool
 
 
 class SystemStatusResponse(StrictModel):

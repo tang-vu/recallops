@@ -1,0 +1,27 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+cache_path = "cache"
+libs = ["lib"]
+solc_version = "0.8.36"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+deny = "warnings"
+
+[fuzz]
+runs = 512
+seed = "0x726563616c6c6f7073"
+
+[invariant]
+runs = 128
+depth = 32
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true
+int_types = "long"
+quote_style = "double"

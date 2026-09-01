@@ -8,10 +8,11 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | --- | --- | --- |
 | Sibyl Memory | Local 0.8.0 four-tier smoke test | Obtained |
 | Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
-| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 39 automated tests pass |
+| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 42 automated tests pass |
 | Virtuals ACP | Policy-approved fixture dispatch and durable receipt link | Obtained locally; IDs start with `fixture:` and links are empty |
 | Virtuals ACP | Real job ID and verifiable link | Not obtained; no multiplier claim |
-| Base Sepolia | Contract address and transaction hash | Not obtained |
+| Base Anvil | Contract deployment, viem anchor, receipt verification, and idempotent replay | Obtained locally; see `base-local.md` |
+| Base Sepolia | Public contract address and transaction hash | Not obtained; no multiplier claim |
 
 Only real public identifiers will be added. Fixture output is labeled `FIXTURE MODE` everywhere it appears.
 

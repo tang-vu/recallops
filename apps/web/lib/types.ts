@@ -45,6 +45,16 @@ export interface SystemStatus {
   fixture_data: boolean;
 }
 
+export interface BaseAnchorRecord {
+  receipt_id: string;
+  action_id: string;
+  chain_id: number;
+  contract_address: string;
+  transaction_hash: string;
+  explorer_url: string | null;
+  integration_mode: "LOCAL ANVIL" | "BASE SEPOLIA";
+}
+
 export interface JournalEvent {
   id: string;
   ts: string;

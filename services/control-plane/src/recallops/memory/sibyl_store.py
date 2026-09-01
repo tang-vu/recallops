@@ -16,6 +16,7 @@ from sibyl_memory_client import MemoryClient
 
 from recallops.memory.port import MemorySubsystemError
 from recallops.models import (
+    BaseAnchorRecord,
     BudgetAccount,
     DecisionReceipt,
     EvaluationContext,
@@ -543,6 +544,94 @@ class SibylMemoryStore:
             return ExecutionAuthorization.model_validate(memory.body)
         except Exception as exc:
             raise MemorySubsystemError("Stored execution authorization is corrupt") from exc
+
+    def write_base_anchor(self, anchor: BaseAnchorRecord) -> list[dict[str, str]]:
+        existing = self.get_base_anchor(str(anchor.receipt_id))
+        if existing is not None and existing != anchor:
+            raise MemorySubsystemError("Receipt already references a different Base anchor")
+        receipt = self.get_decision(str(anchor.receipt_id))
+        authorization = self.get_execution_authorization(str(anchor.receipt_id))
+        if receipt is None or authorization is None:
+            raise MemorySubsystemError(
+                "Cannot persist a Base anchor without durable execution state"
+            )
+        if receipt.action_id != anchor.action_id or authorization.action_id != anchor.action_id:
+            raise MemorySubsystemError("Base anchor action does not match durable execution state")
+        if receipt.base_transaction_hash not in {None, anchor.transaction_hash}:
+            raise MemorySubsystemError(
+                "Decision receipt already references another Base transaction"
+            )
+        if authorization.base_transaction_hash not in {None, anchor.transaction_hash}:
+            raise MemorySubsystemError("Execution already references another Base transaction")
+
+        anchor_name = f"base-anchor:{anchor.receipt_id}"
+        receipt_name = f"decision:{anchor.receipt_id}"
+        execution_name = f"execution:{anchor.receipt_id}"
+        updated_receipt = receipt.model_copy(
+            update={"base_transaction_hash": anchor.transaction_hash}
+        )
+        updated_authorization = authorization.model_copy(
+            update={
+                "base_transaction_hash": anchor.transaction_hash,
+                "updated_at": anchor.created_at,
+            }
+        )
+        try:
+            anchor_entity = self._client.set_entity(
+                "base_anchor",
+                anchor_name,
+                anchor.model_dump(mode="json"),
+                status="verified",
+            )
+            receipt_entity = self._client.set_entity(
+                "decision_receipt",
+                receipt_name,
+                updated_receipt.model_dump(mode="json"),
+                status="anchored",
+            )
+            execution_entity = self._client.set_entity(
+                "execution_authorization",
+                execution_name,
+                updated_authorization.model_dump(mode="json"),
+                status=updated_authorization.status.value.lower(),
+            )
+            event_id = self._client.write_event(
+                acted=[f"Decision receipt {anchor.receipt_id} anchored on chain {anchor.chain_id}"],
+                extra={
+                    "event_type": "BASE_RECEIPT_ANCHORED",
+                    "receipt_id": str(anchor.receipt_id),
+                    "action_id": str(anchor.action_id),
+                    "chain_id": anchor.chain_id,
+                    "contract_address": anchor.contract_address,
+                    "transaction_hash": anchor.transaction_hash,
+                },
+            )
+        except Exception as exc:
+            raise MemorySubsystemError(
+                "Failed to persist the verified Base anchor in Sibyl"
+            ) from exc
+        return [
+            self._write_result(MemoryTier.WARM, "base_anchor", anchor_name, anchor_entity["id"]),
+            self._write_result(
+                MemoryTier.WARM, "decision_receipt", receipt_name, receipt_entity["id"]
+            ),
+            self._write_result(
+                MemoryTier.WARM,
+                "execution_authorization",
+                execution_name,
+                execution_entity["id"],
+            ),
+            self._write_result(MemoryTier.COLD, "BASE_RECEIPT_ANCHORED", event_id, event_id),
+        ]
+
+    def get_base_anchor(self, receipt_id: str) -> BaseAnchorRecord | None:
+        memory = self._read_optional_entity("base_anchor", f"base-anchor:{receipt_id}")
+        if memory is None:
+            return None
+        try:
+            return BaseAnchorRecord.model_validate(memory.body)
+        except Exception as exc:
+            raise MemorySubsystemError("Stored Base anchor is corrupt") from exc
 
     def write_idempotency_record(self, record: IdempotencyRecord) -> list[dict[str, str]]:
         entity_name = _stable_name("idempotency", record.operation, record.key_digest)

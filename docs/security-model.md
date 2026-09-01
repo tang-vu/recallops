@@ -19,7 +19,7 @@ RecallOps assumes proposed tasks, provider metadata, callbacks, and paid endpoin
 | Administrative mutation | Privileged | Constant-time comparison of `X-RecallOps-Admin-Token`; disabled when unconfigured |
 | Control plane to Sibyl | Mandatory local dependency | Tenant-specific client, explicit lifecycle, fail-closed errors |
 | Control plane to Virtuals | External and economic | Dispatch requires durable action-bound authorization, Base Sepolia, price recheck, explicit live enablement, environment allowlist, and sanitized JSON CLI output |
-| Control plane to Base | Public and irreversible | Sepolia allowlist, digest-only payload, approval-before-anchor ordering |
+| Control plane to Base | Public and irreversible | Anvil/Base Sepolia allowlist, digest-only payload, verification-before-anchor ordering, authorized submitter, two live gates |
 
 ## Threats and implemented controls
 
@@ -49,6 +49,8 @@ Request logs contain method, path, status, and correlation ID, not bodies or hea
 
 The ACP child process receives only an allowlist of operating-system environment variables plus `IS_TESTNET=true`; unrelated API tokens are not inherited. CLI errors are capped, recursively sanitized, and have URL query fragments removed before exposure.
 
+The viem child process likewise receives a minimal environment and a bounded JSON request over standard input. No private key is accepted by the client or placed in command arguments. Local tests use an unlocked Anvil development account. A live call requires an externally controlled signer, `RECALLOPS_ENABLE_BASE_SEPOLIA=true`, and a recorded approval identifier.
+
 ### External dispatch uncertainty
 
 RecallOps writes `VIRTUALS_DISPATCH_STARTED` before invoking ACP. A CLI error or timeout changes the authorization to `FAILED`; it is never automatically replayed because the remote job may have been created even when the local response was lost. A new memory decision and human review are required.
@@ -59,13 +61,13 @@ The reset command resolves its target and accepts only the exact project-owned `
 
 ## Onchain privacy
 
-The planned Base registry receives only non-sensitive digests and enum metadata. Raw policy, memory bodies, prompts, deliverables, emails, and personal data stay offchain. A digest proves content consistency only when the verifier has the original content; it does not make private data recoverable.
+The Base registry receives only non-sensitive receipt, decision, and optional ACP job-reference digests plus enum metadata. Raw policy, memory bodies, prompts, deliverables, emails, and personal data stay offchain. A digest proves content consistency only when the verifier has the original content; it does not make private data recoverable.
 
 ## Current limitations
 
 - The local admin token is a coarse-grained control, not a multi-user identity system.
 - The Sibyl SQLite file relies on operating-system and volume permissions; application-level encryption at rest is not added.
 - Rate limiting is expected at the deployment edge and is not implemented in-process yet.
-- Virtuals live credentials and Base anchoring are not configured, so no partner credential path has been exercised.
+- Virtuals live credentials and Base Sepolia anchoring are not configured, so no partner credential path has been exercised. Local Anvil anchoring has been exercised.
 - ACP CLI 1.0.34 currently includes a deprecated legacy v1 transitive package and unresolved npm advisories. It is not vendored into the default runtime; live setup is opt-in and documented in `docs/virtuals-live-setup.md`.
 - Dependency audit covers known published advisories, not undisclosed vulnerabilities.

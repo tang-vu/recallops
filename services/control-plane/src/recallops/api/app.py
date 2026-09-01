@@ -21,6 +21,8 @@ from recallops import __version__
 from recallops.api.logging import log_event
 from recallops.api.schemas import (
     ApprovalWriteRequest,
+    BaseAnchorRequestBody,
+    BaseAnchorResponse,
     BenchmarkUnavailable,
     BudgetWriteRequest,
     DemoProcessResponse,
@@ -37,6 +39,7 @@ from recallops.api.schemas import (
     PolicyWriteRequest,
     SystemStatusResponse,
 )
+from recallops.integrations.base import BaseAdapterError, BasePort, BaseViemAdapter
 from recallops.integrations.virtuals import (
     VirtualsFixtureAdapter,
     VirtualsLiveAdapter,
@@ -52,6 +55,7 @@ from recallops.models import (
     ProposedAction,
     VerificationOutcome,
 )
+from recallops.orchestration.base import BaseAnchorBlockedError, BaseAnchorOrchestrator
 from recallops.orchestration.execution import (
     ExecutionDeniedError,
     ExecutionGate,
@@ -91,6 +95,8 @@ def create_app(
     admin_token: str | None = None,
     virtuals_adapter: VirtualsPort | None = None,
     enable_live_virtuals: bool | None = None,
+    base_adapter: BasePort | None = None,
+    enable_base_sepolia: bool | None = None,
 ) -> FastAPI:
     configured_db = _configured_path(memory_db)
     configured_admin_token = admin_token or os.getenv("RECALLOPS_ADMIN_TOKEN") or None
@@ -110,6 +116,40 @@ def create_app(
         if enable_live_virtuals is not None
         else os.getenv("RECALLOPS_ENABLE_LIVE_VIRTUALS", "false").lower() == "true"
     )
+    configured_base_mode = os.getenv("RECALLOPS_BASE_MODE", "NOT CONFIGURED")
+    if base_adapter is not None:
+        configured_base = base_adapter
+    elif configured_base_mode == "NOT CONFIGURED":
+        configured_base = None
+    elif configured_base_mode in {"LOCAL ANVIL", "BASE SEPOLIA"}:
+        chain_id = 31_337 if configured_base_mode == "LOCAL ANVIL" else 84_532
+        default_rpc = "http://127.0.0.1:8545" if chain_id == 31_337 else ""
+        rpc_url = os.getenv("RECALLOPS_BASE_RPC_URL", default_rpc)
+        contract_address = os.getenv("RECALLOPS_BASE_CONTRACT_ADDRESS", "")
+        submitter = os.getenv("RECALLOPS_BASE_SUBMITTER", "")
+        client_script = os.getenv(
+            "RECALLOPS_BASE_CLIENT_SCRIPT",
+            str(Path(__file__).resolve().parents[5] / "packages" / "contracts" / "dist" / "cli.js"),
+        )
+        live_base_enabled = (
+            enable_base_sepolia
+            if enable_base_sepolia is not None
+            else os.getenv("RECALLOPS_ENABLE_BASE_SEPOLIA", "false").lower() == "true"
+        )
+        configured_base = BaseViemAdapter(
+            mode=configured_base_mode,
+            chain_id=chain_id,
+            rpc_url=rpc_url,
+            contract_address=contract_address,
+            submitter=submitter,
+            client_script=client_script,
+            node_executable=os.getenv("RECALLOPS_NODE_EXECUTABLE", "node"),
+            live_enabled=live_base_enabled,
+            approval_id=os.getenv("RECALLOPS_BASE_APPROVAL_ID"),
+            deployment_block=int(os.getenv("RECALLOPS_BASE_DEPLOYMENT_BLOCK", "0")),
+        )
+    else:
+        raise ValueError("RECALLOPS_BASE_MODE must be NOT CONFIGURED, LOCAL ANVIL, or BASE SEPOLIA")
     application = FastAPI(
         title="RecallOps Control Plane",
         version=__version__,
@@ -214,8 +254,8 @@ def create_app(
             memory_healthy=healthy,
             memory_path_hint=_path_hint(configured_db),
             virtuals_mode=configured_virtuals.mode,
-            base_mode=os.getenv("RECALLOPS_BASE_MODE", "LOCAL ONLY"),
-            base_chain_id=int(os.getenv("RECALLOPS_BASE_CHAIN_ID", "84532")),
+            base_mode=configured_base.mode if configured_base is not None else "NOT CONFIGURED",
+            base_chain_id=configured_base.chain_id if configured_base is not None else 84_532,
             fixture_data=configured_virtuals.mode == "FIXTURE MODE",
         )
 
@@ -389,6 +429,68 @@ def create_app(
                 detail="Mandatory Sibyl execution state is unavailable; commerce is stopped.",
             ) from exc
 
+    @application.post(
+        "/v1/decisions/{receipt_id}/anchor",
+        response_model=BaseAnchorResponse,
+        dependencies=[Depends(require_admin)],
+    )
+    def anchor_decision(
+        receipt_id: UUID,
+        payload: BaseAnchorRequestBody,
+        idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=8)],
+        tenant_id: Annotated[str, Query(min_length=1, max_length=128)],
+    ) -> BaseAnchorResponse:
+        if configured_base is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Base receipt anchoring is not configured.",
+            )
+        operation = "anchor-base"
+        key_digest = sha256_text(idempotency_key)
+        body_digest = request_digest(
+            {"receipt_id": str(receipt_id), "action_id": str(payload.action_id)}
+        )
+        try:
+            with store(tenant_id) as memory:
+                prior = memory.get_idempotency_record(operation, key_digest)
+                if prior is not None and not hmac.compare_digest(prior.request_digest, body_digest):
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Idempotency key was already used for a different anchor request.",
+                    )
+                anchor, writes, replay = BaseAnchorOrchestrator(configured_base).anchor(
+                    memory=memory,
+                    receipt_id=receipt_id,
+                    action_id=payload.action_id,
+                )
+                all_writes = list(writes)
+                if prior is None:
+                    all_writes.extend(
+                        memory.write_idempotency_record(
+                            IdempotencyRecord(
+                                tenant_id=tenant_id,
+                                operation=operation,
+                                key_digest=key_digest,
+                                request_digest=body_digest,
+                                result_reference=str(receipt_id),
+                            )
+                        )
+                    )
+                return BaseAnchorResponse(
+                    anchor=anchor,
+                    writes=tuple(all_writes),
+                    idempotent_replay=replay or prior is not None,
+                )
+        except BaseAnchorBlockedError as exc:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+        except BaseAdapterError as exc:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+        except MemorySubsystemError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Mandatory Sibyl anchor state is unavailable; anchoring is stopped.",
+            ) from exc
+
     @application.get("/v1/decisions/{receipt_id}")
     def get_decision(receipt_id: UUID, tenant_id: str) -> Any:
         with store(tenant_id) as memory:
@@ -396,6 +498,14 @@ def create_app(
         if receipt is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found")
         return receipt
+
+    @application.get("/v1/decisions/{receipt_id}/anchor")
+    def get_decision_anchor(receipt_id: UUID, tenant_id: str) -> Any:
+        with store(tenant_id) as memory:
+            anchor = memory.get_base_anchor(str(receipt_id))
+        if anchor is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Anchor not found")
+        return anchor
 
     @application.get("/v1/decisions")
     def list_decisions(tenant_id: str, limit: Annotated[int, Query(ge=1, le=500)] = 100) -> Any:

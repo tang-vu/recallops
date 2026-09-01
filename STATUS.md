@@ -4,7 +4,7 @@ Last updated: 2026-09-01 UTC
 
 ## Current milestone
 
-Milestone 4 complete: Guarded Virtuals integration
+Milestone 5 complete: Base receipt registry and local anchoring
 
 ## Completed work
 
@@ -32,6 +32,12 @@ Milestone 4 complete: Guarded Virtuals integration
 - Restricted live ACP calls to Base Sepolia, machine-readable JSON, bounded output, a minimal child-process environment, and sanitized error handling.
 - Added durable proposed actions, approval-before-dispatch events, ACP job records, receipt-to-job links, offering price checks, and dispatch replay protection.
 - Kept live dispatch disabled behind `RECALLOPS_ENABLE_LIVE_VIRTUALS=true` and documented the smallest human-controlled setup sequence.
+- Implemented `RecallOpsReceiptRegistry.sol` with digest-only storage, Anvil/Base Sepolia allowlisting, chain validation, immutable submitter authorization, exact replay idempotence, and conflicting replay rejection.
+- Added separate local and Base Sepolia Foundry deployment scripts without committing or printing wallet keys.
+- Added a typed viem client that simulates, submits through an externally controlled JSON-RPC signer, verifies the transaction receipt and stored record, and recovers the original transaction on replay.
+- Added a Base control-plane boundary that requires `APPROVE`, successful action-bound execution, a durable ACP job, and passed verification before anchoring.
+- Persisted confirmed Base anchor metadata, decision linkage, execution linkage, and a COLD audit event through Sibyl.
+- Kept Base Sepolia disabled behind exact network configuration, `RECALLOPS_ENABLE_BASE_SEPOLIA=true`, and a human approval identifier.
 
 ## Tests and checks actually run
 
@@ -68,10 +74,21 @@ Milestone 4 complete: Guarded Virtuals integration
 - Real Web -> FastAPI -> fixture ACP -> Sibyl smoke test: `APPROVE`, `FIXTURE_JOB_CREATED`, durable `SUCCEEDED` authorization, one `fixture:` job, receipt link matched, and zero fake links
 - Updated Docker image build: passed; Compose reached healthy with real Sibyl schema 4 and `FIXTURE MODE`, then stopped cleanly
 - Fresh Milestone 4 process proof after validated demo reset: Session 1 PID 61028, UUID `f54b2112-f705-4e03-8365-8fc3c29ea7e0`; Session 2 PID 3316, UUID `82f3c912-d6de-4892-af55-6559db0c6b47`; Session 2 recalled Session 1, denied Agent A, approved Agent B, and persisted `fixture:31c50808-45de-4b41-b63d-57d959d945e9`
+- Foundry 1.8.1 and Solidity 0.8.36: installed from the checksum-verified official Windows release
+- Foundry format and high-severity lint: passed
+- Foundry tests: 13 passed; two fuzz tests ran 512 cases each
+- Foundry gas snapshot generation and check: passed
+- viem 2.56.1 strict TypeScript, 3 tests, and production compilation: passed
+- Local Anvil deployment: succeeded on chain 31337
+- Local viem anchor: transaction `0x5be41edc311b7ba79091bb0843d7544c2f348a1f5ba02b8c1206ec213ca0b751` verified; exact replay returned `created=false` and the same hash
+- Base-focused Python tests: 3 passed, including verification-before-anchor and persisted replay behavior
+- Full backend suite after Base integration: 42 passed with 83% statement coverage
+- Full web suite after Base integration: TypeScript, ESLint, 3 Vitest tests, production build, and 2 Playwright projects passed
+- Python dependency audit plus web and contract npm audits: no known vulnerabilities found
+- Updated production image: built without cache, shipped Node 24.14.1 plus the pruned viem bridge, reached healthy with Sibyl schema 4, reported Base as `NOT CONFIGURED`, and stopped cleanly
 
 ## Known failures
 
-- Foundry and Anvil are not installed yet.
 - A first smoke-test harness exposed that `MemoryClient.storage.close()` must be called explicitly on Windows before deleting a temporary SQLite database. The production adapter will own this lifecycle.
 - GNU Make is not installed in the inspected Windows environment. The Makefile is available for judge and CI environments; equivalent uv commands were executed directly.
 - Live Virtuals dispatch is intentionally disabled; live mode reports `NOT_DISPATCHED` until the explicit enable flag is set.
@@ -81,14 +98,16 @@ Milestone 4 complete: Guarded Virtuals integration
 ## Live evidence obtained
 
 - Real local Sibyl Memory 0.8.0 reads and writes: obtained in smoke tests, automated integration tests, and the manual two-process demo.
+- Local Anvil registry deployment and verified viem transaction: obtained; explicitly not public Base evidence.
 - Base Sepolia deployment and transaction: not yet obtained; no multiplier claim.
 - Virtuals ACP job: not yet obtained; no multiplier claim.
 
 ## Human actions needed
 
-None for fixture-complete Milestones 0 through 4. A real Virtuals job requires review of the upstream CLI audit, browser authentication, an identified Base Sepolia wallet, signer policy, testnet funding, and explicit approval of the exact maximum testnet amount.
+None for local Milestones 0 through 5. A real Virtuals job requires review of the upstream CLI audit, browser authentication, an identified Base Sepolia wallet, signer policy, testnet funding, and explicit approval of the exact maximum testnet amount. A Base Sepolia deployment and anchor require the exact wallet, testnet gas cap, and irreversible action approval documented in `docs/base-deployment.md`.
 
 ## Next tasks
 
-- Implement and fuzz-test the receipt registry contract locally.
-- Prepare Base Sepolia deployment without deploying or signing until explicit wallet approval.
+- Run the complete cross-stack quality gate after the Base integration.
+- Build and run the 12-scenario Sibyl versus stateless benchmark and deletion test.
+- Complete remaining judging, demo, submission, and evidence documentation.

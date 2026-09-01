@@ -1,7 +1,7 @@
 const GET_PATHS = [
   /^health$/,
   /^v1\/system\/status$/,
-  /^v1\/decisions(?:\/[0-9a-f-]+)?$/,
+  /^v1\/decisions(?:\/[0-9a-f-]+(?:\/anchor)?)?$/,
   /^v1\/memory\/evidence$/,
   /^v1\/counterparties$/,
   /^v1\/jobs$/,

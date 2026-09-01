@@ -30,7 +30,8 @@ FastAPI control plane
   |-- VirtualsPort
   |     |-- VirtualsFixtureAdapter [explicit fixture IDs]
   |     `-- VirtualsLiveAdapter [ACP CLI JSON, Base Sepolia only]
-  `-- Base receipt anchoring [Milestone 5]
+  `-- BasePort
+        `-- BaseViemAdapter [Anvil or explicitly enabled Base Sepolia]
 ```
 
 The web application will call only the FastAPI boundary. It will never import the Sibyl SDK or access the SQLite file.
@@ -63,6 +64,9 @@ Authorize adapter dispatch exactly once
     |
     v
 Verify job before payment, persist outcome, update future policy context
+    |
+    v
+Anchor digest-only receipt after VERIFIED_PASSED, persist confirmed transaction to Sibyl
 ```
 
 An LLM can propose an action or summarize evidence later, but it cannot choose or override the final enum.
@@ -98,9 +102,12 @@ The execution gate and job state machine enforce these invariants:
 - Only `SUBMITTED` can become verified.
 - Only `VERIFIED_PASSED` can become `PAYMENT_AUTHORIZED`.
 - `VERIFIED_FAILED` creates a durable failure fingerprint and cannot be paid.
+- Base anchoring requires `APPROVE`, a matching successful execution, an ACP job, and a passed verification.
+- Fixture ACP jobs may be anchored only on local Anvil and can never become live Base evidence.
+- Base Sepolia requires exact chain ID, authorized submitter, a successful simulation and receipt, and two explicit live gates.
 
 ## Deployment shape
 
-The root Compose service runs the control plane on loopback and persists the Sibyl file in a named Docker volume. Administrative mutations remain disabled unless `RECALLOPS_ADMIN_TOKEN` is explicitly set. The default integration labels are `FIXTURE MODE` and `LOCAL ONLY`.
+The root Compose service runs the control plane on loopback and persists the Sibyl file in a named Docker volume. Administrative mutations remain disabled unless `RECALLOPS_ADMIN_TOKEN` is explicitly set. The default integration labels are `FIXTURE MODE` and `NOT CONFIGURED`.
 
-The Next.js application reaches only the API through an allowlisted same-origin proxy. The Virtuals adapter runs inside the control plane only after the durable execution gate. Base anchoring remains a separate post-approval boundary.
+The Next.js application reaches only the API through an allowlisted same-origin proxy. The Virtuals adapter runs inside the control plane only after the durable execution gate. Base anchoring is a separate post-verification boundary and its transaction result returns to Sibyl as WARM evidence plus a COLD audit event.

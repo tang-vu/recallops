@@ -27,6 +27,7 @@ test-results/
 packages/contracts/cache/
 packages/contracts/out/
 packages/contracts/broadcast/
+packages/contracts/dist/
 
 # RecallOps local state and evidence
 .data/

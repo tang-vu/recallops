@@ -61,8 +61,13 @@ Sources:
 
 - [Base x402 payment guide](https://docs.base.org/agents/guides/x402-payments)
 - [Base Virtuals plugin guide](https://docs.base.org/agents/plugins/native/virtuals)
+- [Base network connection reference](https://docs.base.org/base-chain/quickstart/connecting-to-base)
+- [Foundry v1.8.1 release](https://github.com/foundry-rs/foundry/releases/tag/v1.8.1)
+- [Solidity 0.8.36 release](https://www.soliditylang.org/blog/2026/07/09/solidity-0.8.36-release-announcement/)
 
-Choice: prioritize a minimal Solidity receipt registry on Base Sepolia. It will anchor only decision digests after policy approval. Foundry tests and local Anvil deployment precede any testnet action.
+Choice: use Foundry 1.8.1, Solidity 0.8.36, and viem 2.56.1. The compiler release includes two security fixes, so the contract pins the current stable compiler rather than an older example version. The Base reference confirms Sepolia chain ID `84532` and the official `https://sepolia-explorer.base.org` explorer. The registry anchors only digests after approval and verification; Foundry tests and local Anvil deployment precede any testnet action.
+
+The official Windows Foundry 1.8.1 archive was checksum-verified before installation. Its observed SHA-256 was `02d98fc2c573793960ee06b7f642487d483fe30572f7e248804c207334a418d8`. Local contract tests, fuzzing, lint, gas snapshot, deployment, and a viem transaction all passed. Base Sepolia remains unconfigured and unclaimed.
 
 x402 is a stretch integration, not the critical path. The current Base MCP flow supports Base and Base Sepolia but requires a separate approval link and wallet signature for a payment. No paid or signed call will be attempted without explicit approval.
 
@@ -72,7 +77,7 @@ x402 is a stretch integration, not the critical path. The current Base MCP flow 
 - Node.js 24.14.1 and npm 11.11.0, compatible with current ACP CLI requirements
 - FastAPI and Pydantic v2 for the versioned control-plane API
 - Next.js and strict TypeScript for the operations console
-- Foundry and viem for contracts and application interaction; Foundry is not installed in the inspected environment yet
+- Foundry 1.8.1 and viem 2.56.1 for contracts and typed application interaction
 
 Versions beyond the packages above will be locked when their workspace is introduced and smoke-tested.
 

@@ -199,6 +199,22 @@ class ExecutionAuthorization(StrictModel):
     base_transaction_hash: str | None = None
 
 
+class BaseAnchorRecord(StrictModel):
+    tenant_id: str = Field(min_length=1, max_length=128)
+    receipt_id: UUID
+    action_id: UUID
+    chain_id: int
+    contract_address: str = Field(pattern=r"^0x[0-9a-fA-F]{40}$")
+    transaction_hash: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    receipt_id_digest: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    decision_digest: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    acp_job_reference_digest: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    record_hash: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
+    explorer_url: str | None = Field(default=None, max_length=512)
+    integration_mode: str = Field(pattern=r"^(LOCAL ANVIL|BASE SEPOLIA)$")
+    created_at: datetime = Field(default_factory=utc_now)
+
+
 class IdempotencyRecord(StrictModel):
     tenant_id: str
     operation: str = Field(min_length=1, max_length=128)

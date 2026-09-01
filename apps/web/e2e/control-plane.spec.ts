@@ -7,7 +7,7 @@ const status = {
   memory_healthy: true,
   memory_path_hint: ".../e2e.db",
   virtuals_mode: "FIXTURE MODE",
-  base_mode: "LOCAL ONLY",
+  base_mode: "NOT CONFIGURED",
   base_chain_id: 84532,
   fixture_data: true,
 };

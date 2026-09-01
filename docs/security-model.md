@@ -59,6 +59,8 @@ RecallOps writes `VIRTUALS_DISPATCH_STARTED` before invoking ACP. A CLI error or
 
 The reset command resolves its target and accepts only the exact project-owned `.data/demo/recallops-demo.db` file. It requires the literal confirmation `RESET_RECALLOPS_DEMO`. Normal Sibyl databases are never reset by that command.
 
+The benchmark database has a separate exact path under `.data/benchmark` and is replaced only when the explicit `--replace` flag is supplied. The deletion test does not delete a production database. It injects an unavailable memory boundary and proves the guard returns `ESCALATE`; its stateless comparator is isolated under the benchmark package and cannot be selected by the API.
+
 ## Onchain privacy
 
 The Base registry receives only non-sensitive receipt, decision, and optional ACP job-reference digests plus enum metadata. Raw policy, memory bodies, prompts, deliverables, emails, and personal data stay offchain. A digest proves content consistency only when the verifier has the original content; it does not make private data recoverable.

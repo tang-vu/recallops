@@ -70,3 +70,5 @@ The test fails if the WARM Sibyl writes or reads are removed because Session 2 t
 Pydantic validates money as `Decimal` with six fractional places and serializes it as a decimal string. Every evidence item includes its Sibyl tier, record identity, write and recall timestamps, source session, active status, exact non-secret body, explanation, and SHA-256 content digest. The receipt includes a digest over the ordered evidence snapshot.
 
 These hashes make changes detectable within RecallOps artifacts. After an approved job passes verification, the separate Base boundary may anchor a receipt digest and persist its confirmed transaction back to WARM and COLD Sibyl records. Local Anvil proof exists; public Base Sepolia proof does not yet exist.
+
+Counterparty probation is stored as a task-scoped WARM profile with explicit start, end, and status fields. A verified failure starts a seven-day probation record; an ended profile can restore eligibility without erasing the underlying journal history.

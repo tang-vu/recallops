@@ -66,4 +66,15 @@ Commit: `429539b` (`feat(virtuals): execute guarded ACP jobs`)
 - Deployed locally on Anvil and executed a real local transaction. Repeating the same request returned `created=false` and the original hash.
 - Ran 13 Foundry tests, 1,024 total fuzz cases, high-severity lint, gas snapshot checks, 3 viem tests, and the Base API integration tests.
 
-Commit: recorded by Git history as `feat(base): anchor verified decision receipts`.
+Commit: `5aab07a` (`feat(base): anchor verified decision receipts`)
+
+### 09:04 - Benchmark, deletion proof, and judging package
+
+- Added twelve deterministic scenarios covering budgets, repeated failures, task scope, revocation, expiry, prompt injection, verification, replay, exceptions, probation, and missing memory.
+- Ran every scenario through the production `SibylMemoryStore` and an isolated stateless comparator with seed 20260901.
+- Measured 0% unsafe repeats, 0% budget violations, 100% decision accuracy, and 100% evidence completeness on the Sibyl path.
+- Demonstrated that disabling Sibyl stops production commerce with `ESCALATE`, while the comparator repeats the unsafe approval.
+- Exported JSON, CSV, and Markdown artifacts and connected the verified artifact to the API and dashboard.
+- Drafted the 3:30 demo, problem-validation disclosure, submission checklist, and unpublished submission materials.
+
+Commit: recorded in Git history as `test: add cross-session deletion benchmark`.

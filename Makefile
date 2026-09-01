@@ -1,4 +1,4 @@
-.PHONY: help install check check-contracts check-e2e api web demo-session-1 demo-session-2 demo-reset benchmark
+.PHONY: help install check check-contracts check-e2e api web demo-session-1 demo-session-2 demo-reset benchmark deletion-test
 
 UV ?= uv
 FORGE ?= forge
@@ -15,6 +15,7 @@ help:
 	@echo "  demo-session-2  Recall it from a fresh process"
 	@echo "  demo-reset      Reset only the validated demo database with confirmation"
 	@echo "  benchmark       Compare Sibyl memory with the explicit stateless baseline"
+	@echo "  deletion-test   Prove disabled Sibyl stops production commerce"
 
 install:
 	$(UV) sync --all-packages --all-extras --python 3.12
@@ -64,4 +65,7 @@ demo-reset:
 	$(UV) run --project services/control-plane python -m recallops.demo.reset --db "$(DEMO_DB)" --confirm RESET_RECALLOPS_DEMO
 
 benchmark:
-	@echo "Available after the benchmark milestone."
+	$(UV) run --project services/control-plane python -m recallops.benchmark.runner --db "$(CURDIR)/.data/benchmark/recallops-benchmark.db" --output-dir "$(CURDIR)/benchmark/results" --seed 20260901 --replace
+
+deletion-test:
+	$(UV) run --project services/control-plane python -m recallops.benchmark.deletion --output "$(CURDIR)/benchmark/results/deletion-test.json"

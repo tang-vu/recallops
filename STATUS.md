@@ -4,7 +4,7 @@ Last updated: 2026-09-01 UTC
 
 ## Current milestone
 
-Milestone 5 complete: Base receipt registry and local anchoring
+Milestone 6 complete locally: Benchmark, hardening, and presentation
 
 ## Completed work
 
@@ -38,6 +38,14 @@ Milestone 5 complete: Base receipt registry and local anchoring
 - Added a Base control-plane boundary that requires `APPROVE`, successful action-bound execution, a durable ACP job, and passed verification before anchoring.
 - Persisted confirmed Base anchor metadata, decision linkage, execution linkage, and a COLD audit event through Sibyl.
 - Kept Base Sepolia disabled behind exact network configuration, `RECALLOPS_ENABLE_BASE_SEPOLIA=true`, and a human approval identifier.
+- Added task-scoped counterparty probation start/end records without deleting historical outcomes.
+- Implemented twelve deterministic benchmark scenarios in production Sibyl and explicit stateless modes.
+- Exported benchmark JSON, CSV, and Markdown with fixed seed 20260901 and reproducible run ID `1627c118-32a7-5bc2-8c14-fdfe62db1849`.
+- Added a deletion test proving disabled Sibyl stops production commerce while the isolated stateless comparator repeats the unsafe rehire.
+- Connected validated benchmark artifacts to the versioned API and judge-facing dashboard.
+- Drafted the required demo script, submission checklist, submission copy, and honest secondary problem validation.
+- Added least-privilege GitHub Actions quality gates with commit-pinned actions for the Python control plane, web console, browser flow, Solidity registry, viem bridge, and dependency audits.
+- Created one hackathon milestone and four narrowly scoped GitHub issues for the remaining human-controlled evidence and submission actions.
 
 ## Tests and checks actually run
 
@@ -86,10 +94,19 @@ Milestone 5 complete: Base receipt registry and local anchoring
 - Full web suite after Base integration: TypeScript, ESLint, 3 Vitest tests, production build, and 2 Playwright projects passed
 - Python dependency audit plus web and contract npm audits: no known vulnerabilities found
 - Updated production image: built without cache, shipped Node 24.14.1 plus the pruned viem bridge, reached healthy with Sibyl schema 4, reported Base as `NOT CONFIGURED`, and stopped cleanly
+- Twelve-scenario benchmark: completed 24 evaluations; Sibyl measured 0% unsafe repeats, 0% budget violations, 100% decision accuracy, and 100% evidence completeness
+- Stateless benchmark comparator: measured 100% unsafe repeats, 50% budget violations, 41.67% decision accuracy, and 0% durable evidence completeness
+- Benchmark-focused tests: 3 passed, including artifact export and deletion behavior
+- Deletion test: passed with production `ESCALATE` / `MEMORY_READ_FAILED` and stateless `APPROVE`
+- Final release-candidate backend gate: Ruff format and lint passed on 40 files, mypy strict passed on 40 files, and 49 pytest tests passed with 84% statement coverage
+- Final release-candidate web gate: strict TypeScript, ESLint, 3 Vitest tests, production build, 2 Playwright projects, and npm audit passed
+- Final release-candidate contract gate: Foundry format/lint, 13 tests with 1,024 total fuzz cases, gas snapshot, viem type/test/build, and npm audit passed
+- The checksum-verified actionlint 1.7.12 release validated `.github/workflows/ci.yml` with no findings
+- Local Markdown link validation passed, `git diff --check` passed, tracked secret-like filename review found only `.env.example` templates, and the high-confidence secret assignment scan found no match
 
 ## Known failures
 
-- A first smoke-test harness exposed that `MemoryClient.storage.close()` must be called explicitly on Windows before deleting a temporary SQLite database. The production adapter will own this lifecycle.
+- No current local test, build, lint, type, or dependency-audit gate is failing.
 - GNU Make is not installed in the inspected Windows environment. The Makefile is available for judge and CI environments; equivalent uv commands were executed directly.
 - Live Virtuals dispatch is intentionally disabled; live mode reports `NOT_DISPATCHED` until the explicit enable flag is set.
 - ACP CLI 1.0.34 has unresolved upstream audit findings and a deprecated legacy v1 transitive dependency, so it is not vendored in the default runtime.
@@ -104,10 +121,15 @@ Milestone 5 complete: Base receipt registry and local anchoring
 
 ## Human actions needed
 
-None for local Milestones 0 through 5. A real Virtuals job requires review of the upstream CLI audit, browser authentication, an identified Base Sepolia wallet, signer policy, testnet funding, and explicit approval of the exact maximum testnet amount. A Base Sepolia deployment and anchor require the exact wallet, testnet gas cap, and irreversible action approval documented in `docs/base-deployment.md`.
+None for completed local implementation. The remaining externally verifiable steps are tracked without claiming completion:
+
+- [Issue 1](https://github.com/tang-vu/recallops/issues/1): approve and capture Base Sepolia evidence after wallet, network, gas cap, reversibility, and necessity are reviewed.
+- [Issue 2](https://github.com/tang-vu/recallops/issues/2): approve and capture a real Virtuals ACP job after CLI audit, browser authentication, signer policy, and maximum testnet amount are reviewed.
+- [Issue 3](https://github.com/tang-vu/recallops/issues/3): record the continuous fresh-process demo.
+- [Issue 4](https://github.com/tang-vu/recallops/issues/4): perform the final human truth review and explicitly authorize submission.
 
 ## Next tasks
 
-- Run the complete cross-stack quality gate after the Base integration.
-- Build and run the 12-scenario Sibyl versus stateless benchmark and deletion test.
-- Complete remaining judging, demo, submission, and evidence documentation.
+- Run the final cross-stack gate, repository link check, and secret scan against the release candidate.
+- Record only real partner evidence after the exact human approvals in Issues 1 and 2.
+- Record the demo and submit only after explicit human approval in Issues 3 and 4.

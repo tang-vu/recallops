@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -92,8 +93,53 @@ class SystemStatusResponse(StrictModel):
 
 
 class BenchmarkUnavailable(StrictModel):
-    available: bool = False
+    available: Literal[False] = False
     reason: str = "No benchmark run has been persisted yet."
+
+
+class BenchmarkLatency(StrictModel):
+    median_ms: float = Field(ge=0)
+    p95_ms: float = Field(ge=0)
+
+
+class BenchmarkMetrics(StrictModel):
+    unsafe_repeat_rate_percent: float = Field(ge=0, le=100)
+    budget_violation_rate_percent: float = Field(ge=0, le=100)
+    decision_accuracy_percent: float = Field(ge=0, le=100)
+    evidence_completeness_percent: float = Field(ge=0, le=100)
+    latency: BenchmarkLatency
+
+
+class BenchmarkSummary(StrictModel):
+    sibyl_memory: BenchmarkMetrics
+    stateless_baseline: BenchmarkMetrics
+
+
+class BenchmarkScenarioResult(StrictModel):
+    scenario_id: str = Field(pattern=r"^\d{2}$")
+    title: str = Field(min_length=1, max_length=128)
+    mode: Literal["SIBYL_MEMORY", "STATELESS_BASELINE"]
+    expected: Literal["APPROVE", "DENY", "ESCALATE"]
+    decision: Literal["APPROVE", "DENY", "ESCALATE"]
+    correct: bool
+    reason_codes: tuple[str, ...]
+    evidence_count: int = Field(ge=0)
+    evidence_complete: bool
+    unsafe_repeat_risk: bool
+    budget_risk: bool
+    latency_ms: float = Field(ge=0)
+
+
+class BenchmarkReport(StrictModel):
+    available: Literal[True]
+    benchmark_version: str = Field(min_length=1, max_length=64)
+    run_id: UUID
+    seed: int
+    generated_at: datetime
+    scenario_count: Literal[12]
+    mode_disclosure: dict[Literal["SIBYL_MEMORY", "STATELESS_BASELINE"], str]
+    summary: BenchmarkSummary
+    results: tuple[BenchmarkScenarioResult, ...]
 
 
 class CounterpartyResponse(StrictModel):

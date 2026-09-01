@@ -136,6 +136,26 @@ make check
 
 The root quality gate runs Ruff formatting and lint, mypy strict mode, real temporary SQLite and FTS5-capable Sibyl integration tests, tenant isolation, decimal policy tests, the separate-process proof, strict TypeScript, ESLint, Vitest, a Next.js production build, and Playwright. The latest executed results are recorded in [STATUS.md](STATUS.md).
 
+## Benchmark results
+
+Run the fixed 12-scenario comparison with seed `20260901`:
+
+```bash
+make benchmark
+```
+
+The latest executed run is `1627c118-32a7-5bc2-8c14-fdfe62db1849`. Production `SibylMemoryStore` achieved 0% unsafe repeats, 0% budget violations, 100% expected-decision accuracy, and 100% evidence completeness. The explicit benchmark-only stateless comparator produced 100%, 50%, 41.67%, and 0% respectively. Latency is reported, not hidden: the observed median was 62.697 ms for local Sibyl versus 0.005 ms for the comparator.
+
+See the [human-readable report](benchmark/results/latest.md), [machine-readable JSON](benchmark/results/latest.json), and [CSV](benchmark/results/latest.csv). The baseline is never selectable in production.
+
+## Deletion test
+
+```bash
+make deletion-test
+```
+
+With Sibyl deliberately unavailable, the production guard returns `ESCALATE` with `MEMORY_READ_FAILED`, performs no writes, and stops commerce. The explicit stateless comparator approves the same harmful rehire, proving the lost capability. The result is stored in [benchmark/results/deletion-test.json](benchmark/results/deletion-test.json).
+
 ## Partner integration status
 
 ### Virtuals integration
@@ -161,6 +181,15 @@ No real Virtuals ACP job or public Base Sepolia transaction has been recorded, s
 - Base mainnet and real-asset transfers are out of scope without explicit human approval.
 
 See [SECURITY.md](SECURITY.md) for reporting and [docs/research/technical-discovery.md](docs/research/technical-discovery.md) for version choices.
+
+## Known limitations
+
+- The verified Sibyl deployment is local SQLite; hosted multi-node operation is not demonstrated.
+- Virtuals fixture mode is complete, but no real ACP job exists yet.
+- The Base registry is proven on local Anvil, but no Base Sepolia deployment or public transaction exists yet.
+- The administrative boundary is one high-entropy token, not a multi-user identity system.
+- In-process rate limiting is not implemented; public deployment requires an authenticated edge.
+- Secondary research supports the problem hypothesis, but there are no claimed users or PMF signals.
 
 ## Prior Work
 

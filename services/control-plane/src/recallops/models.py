@@ -80,6 +80,21 @@ class FailureFingerprint(StrictModel):
     active: bool = True
 
 
+class CounterpartyProfile(StrictModel):
+    tenant_id: str = Field(min_length=1, max_length=128)
+    provider_id: str = Field(min_length=1, max_length=128)
+    task_category: str = Field(min_length=1, max_length=128)
+    failed_jobs: int = Field(default=0, ge=0)
+    successful_jobs: int = Field(default=0, ge=0)
+    last_failure_fingerprint: str | None = Field(default=None, max_length=256)
+    last_verification_reason: str | None = Field(default=None, max_length=512)
+    source_session_id: UUID
+    probation_status: str = Field(pattern=r"^(active|ended|none)$")
+    probation_started_at: datetime | None = None
+    probation_ends_at: datetime | None = None
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
 class PermissionGrant(StrictModel):
     tenant_id: str = Field(min_length=1, max_length=128)
     owner_id: str = Field(min_length=1, max_length=128)

@@ -1,0 +1,20 @@
+{
+  "test": "recallops-sibyl-deletion-test-v1",
+  "passed": true,
+  "production_without_sibyl": {
+    "decision": "ESCALATE",
+    "reason_codes": [
+      "MEMORY_READ_FAILED"
+    ],
+    "commerce_stopped": true,
+    "writes": []
+  },
+  "explicit_stateless_comparison": {
+    "decision": "APPROVE",
+    "reason_codes": [
+      "STATELESS_CURRENT_REQUEST_ONLY"
+    ],
+    "unsafe_repeat": true,
+    "production_selectable": false
+  }
+}

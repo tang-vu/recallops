@@ -55,6 +55,26 @@ export interface BaseAnchorRecord {
   integration_mode: "LOCAL ANVIL" | "BASE SEPOLIA";
 }
 
+export interface BenchmarkMetrics {
+  unsafe_repeat_rate_percent: number;
+  budget_violation_rate_percent: number;
+  decision_accuracy_percent: number;
+  evidence_completeness_percent: number;
+  latency: { median_ms: number; p95_ms: number };
+}
+
+export interface BenchmarkReport {
+  available: boolean;
+  reason?: string;
+  run_id?: string;
+  seed?: number;
+  scenario_count?: number;
+  summary?: {
+    sibyl_memory: BenchmarkMetrics;
+    stateless_baseline: BenchmarkMetrics;
+  };
+}
+
 export interface JournalEvent {
   id: string;
   ts: string;

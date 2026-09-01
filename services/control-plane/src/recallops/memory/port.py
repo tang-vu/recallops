@@ -7,6 +7,7 @@ from typing import Protocol
 from recallops.models import (
     BaseAnchorRecord,
     BudgetAccount,
+    CounterpartyProfile,
     DecisionReceipt,
     EvaluationContext,
     ExecutionAuthorization,
@@ -38,6 +39,8 @@ class MemoryPort(Protocol):
     def write_budget(self, account: BudgetAccount) -> list[dict[str, str]]: ...
 
     def write_failure(self, failure: FailureFingerprint) -> list[dict[str, str]]: ...
+
+    def write_counterparty_profile(self, profile: CounterpartyProfile) -> list[dict[str, str]]: ...
 
     def write_permission(self, grant: PermissionGrant) -> list[dict[str, str]]: ...
 

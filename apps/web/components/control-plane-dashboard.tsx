@@ -7,6 +7,8 @@ import { ApiError, apiRequest } from "@/lib/api";
 import { summarizeDecisions } from "@/lib/metrics";
 import type {
   BaseAnchorRecord,
+  BenchmarkMetrics,
+  BenchmarkReport,
   CounterpartyEntity,
   Decision,
   DecisionReceipt,
@@ -69,7 +71,7 @@ export function ControlPlaneDashboard() {
   });
   const benchmarkQuery = useQuery({
     queryKey: ["benchmark"],
-    queryFn: () => apiRequest<{ available: boolean; reason: string }>("v1/benchmark/latest"),
+    queryFn: () => apiRequest<BenchmarkReport>("v1/benchmark/latest"),
   });
   const jobsQuery = useQuery({
     queryKey: ["jobs", TENANT_ID],
@@ -275,9 +277,9 @@ export function ControlPlaneDashboard() {
           </section>
 
           <section id="benchmark" className="section-block" aria-labelledby="benchmark-title">
-            <div className="section-heading"><div><p className="eyebrow">DELETION TEST</p><h2 id="benchmark-title">With memory vs. stateless baseline</h2></div><span className="status-pill amber">NOT RUN</span></div>
-            <div className="benchmark-grid"><BenchmarkColumn title="Sibyl Memory" tone="green" /><BenchmarkColumn title="Stateless comparison" tone="red" /></div>
-            <p className="data-note">{benchmarkQuery.data?.reason ?? "No benchmark artifact has been persisted."} No metrics are invented.</p>
+            <div className="section-heading"><div><p className="eyebrow">DELETION TEST</p><h2 id="benchmark-title">With memory vs. stateless baseline</h2></div><span className={`status-pill ${benchmarkQuery.data?.available ? "green" : "amber"}`}>{benchmarkQuery.data?.available ? "12 SCENARIOS" : "NOT RUN"}</span></div>
+            <div className="benchmark-grid"><BenchmarkColumn title="Sibyl Memory" tone="green" metrics={benchmarkQuery.data?.summary?.sibyl_memory} /><BenchmarkColumn title="Stateless comparison" tone="red" metrics={benchmarkQuery.data?.summary?.stateless_baseline} /></div>
+            <p className="data-note">{benchmarkQuery.data?.available ? `Reproducible run ${benchmarkQuery.data.run_id} · seed ${benchmarkQuery.data.seed}. The stateless baseline is benchmark-only and never selectable in production.` : `${benchmarkQuery.data?.reason ?? "No benchmark artifact has been persisted."} No metrics are invented.`}</p>
           </section>
 
           <section id="integrations" className="section-block" aria-labelledby="integrations-title">
@@ -323,8 +325,9 @@ function TimelineEvent({ event }: { event: JournalEvent }) {
 function EmptyState({ title, body }: { title: string; body: string }) { return <div className="empty-state"><strong>{title}</strong><p>{body}</p></div>; }
 function InlineUnavailable({ error }: { error: unknown }) { return <div className="alert danger" role="alert"><strong>Data unavailable.</strong> {displayError(error)}</div>; }
 
-function BenchmarkColumn({ title, tone }: { title: string; tone: string }) {
-  return <article className={`benchmark-column ${tone}`}><h3>{title}</h3>{["Unsafe repeat rate", "Budget violation rate", "Decision accuracy", "Evidence completeness", "Latency"].map((label) => <div key={label}><span>{label}</span><strong>Not run</strong></div>)}</article>;
+function BenchmarkColumn({ title, tone, metrics }: { title: string; tone: string; metrics?: BenchmarkMetrics }) {
+  const rows = metrics ? [["Unsafe repeat rate", `${metrics.unsafe_repeat_rate_percent.toFixed(2)}%`], ["Budget violation rate", `${metrics.budget_violation_rate_percent.toFixed(2)}%`], ["Decision accuracy", `${metrics.decision_accuracy_percent.toFixed(2)}%`], ["Evidence completeness", `${metrics.evidence_completeness_percent.toFixed(2)}%`], ["Median / p95 latency", `${metrics.latency.median_ms.toFixed(3)} / ${metrics.latency.p95_ms.toFixed(3)} ms`]] : [["Unsafe repeat rate", "Not run"], ["Budget violation rate", "Not run"], ["Decision accuracy", "Not run"], ["Evidence completeness", "Not run"], ["Median / p95 latency", "Not run"]];
+  return <article className={`benchmark-column ${tone}`}><h3>{title}</h3>{rows.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</article>;
 }
 
 function IntegrationCard({ name, status, tone, rows, explorerUrl }: { name: string; status: string; tone: string; rows: string[][]; explorerUrl?: string | null }) {

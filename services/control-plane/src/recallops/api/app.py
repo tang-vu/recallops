@@ -16,6 +16,7 @@ from uuid import UUID, uuid4
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from recallops import __version__
 from recallops.api.logging import log_event
@@ -23,6 +24,7 @@ from recallops.api.schemas import (
     ApprovalWriteRequest,
     BaseAnchorRequestBody,
     BaseAnchorResponse,
+    BenchmarkReport,
     BenchmarkUnavailable,
     BudgetWriteRequest,
     DemoProcessResponse,
@@ -97,8 +99,19 @@ def create_app(
     enable_live_virtuals: bool | None = None,
     base_adapter: BasePort | None = None,
     enable_base_sepolia: bool | None = None,
+    benchmark_result: Path | None = None,
 ) -> FastAPI:
     configured_db = _configured_path(memory_db)
+    default_benchmark = (
+        Path(__file__).resolve().parents[5] / "benchmark" / "results" / "latest.json"
+    )
+    configured_benchmark = (
+        benchmark_result.expanduser().resolve()
+        if benchmark_result is not None
+        else Path(os.environ["RECALLOPS_BENCHMARK_RESULT"]).expanduser().resolve()
+        if "RECALLOPS_BENCHMARK_RESULT" in os.environ
+        else default_benchmark
+    )
     configured_admin_token = admin_token or os.getenv("RECALLOPS_ADMIN_TOKEN") or None
     configured_virtuals_mode = os.getenv("RECALLOPS_VIRTUALS_MODE", "FIXTURE MODE")
     if virtuals_adapter is not None:
@@ -675,9 +688,18 @@ def create_app(
     def demo_session_2() -> DemoProcessResponse:
         return run_demo_process("recallops.demo.session2")
 
-    @application.get("/v1/benchmark/latest", response_model=BenchmarkUnavailable)
-    def benchmark_latest() -> BenchmarkUnavailable:
-        return BenchmarkUnavailable()
+    @application.get(
+        "/v1/benchmark/latest",
+        response_model=BenchmarkReport | BenchmarkUnavailable,
+    )
+    def benchmark_latest() -> BenchmarkReport | BenchmarkUnavailable:
+        if not configured_benchmark.is_file():
+            return BenchmarkUnavailable()
+        try:
+            payload = json.loads(configured_benchmark.read_text(encoding="utf-8"))
+            return BenchmarkReport.model_validate(payload)
+        except (OSError, json.JSONDecodeError, ValidationError):
+            return BenchmarkUnavailable(reason="The benchmark artifact failed validation.")
 
     return application
 

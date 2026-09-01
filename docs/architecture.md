@@ -78,12 +78,14 @@ Sibyl Memory owns every production fact that can change an economic decision:
 | Tier | RecallOps ownership |
 | --- | --- |
 | HOT | Current session, PID, commit, pending demo stage |
-| WARM | Policies, budgets, permissions, exceptions, failure fingerprints, counterparty profiles, decisions, idempotency records, execution authorizations, jobs |
+| WARM | Policies, budgets, permissions, exceptions, failure fingerprints, timed counterparty probation profiles, decisions, idempotency records, execution authorizations, jobs, Base anchors |
 | COLD | Chronological policy, verification, decision, authorization, and job transition events |
 | REFERENCE | Versioned policy schema and risk definition metadata |
 | ARCHIVE | Superseded permissions, expired exceptions, and retired counterparties as lifecycle APIs are completed |
 
 No PostgreSQL, Redis, browser storage, or shadow SQLite schema reproduces this function in production.
+
+The stateless evaluator lives only in `recallops.benchmark`. It is an intentionally unsafe current-request comparator used to quantify the capabilities lost without durable memory. No application configuration can select it as a `MemoryPort`.
 
 ## State transitions
 

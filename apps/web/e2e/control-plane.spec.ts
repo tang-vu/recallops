@@ -20,7 +20,16 @@ test.beforeEach(async ({ page }) => {
     if (path.includes("v1/memory/evidence")) return route.fulfill({ json: [] });
     if (path.includes("v1/counterparties")) return route.fulfill({ json: [] });
     if (path.endsWith("v1/jobs")) return route.fulfill({ json: [] });
-    if (path.includes("v1/benchmark/latest")) return route.fulfill({ json: { available: false, reason: "No benchmark run has been persisted yet." } });
+    if (path.includes("v1/benchmark/latest")) return route.fulfill({ json: {
+      available: true,
+      run_id: "1627c118-32a7-5bc2-8c14-fdfe62db1849",
+      seed: 20260901,
+      scenario_count: 12,
+      summary: {
+        sibyl_memory: { unsafe_repeat_rate_percent: 0, budget_violation_rate_percent: 0, decision_accuracy_percent: 100, evidence_completeness_percent: 100, latency: { median_ms: 62.697, p95_ms: 93.694 } },
+        stateless_baseline: { unsafe_repeat_rate_percent: 100, budget_violation_rate_percent: 50, decision_accuracy_percent: 41.67, evidence_completeness_percent: 0, latency: { median_ms: 0.005, p95_ms: 0.006 } },
+      },
+    } });
     if (path.endsWith("v1/actions/evaluate")) {
       const request = route.request().postDataJSON() as { action_id: string; session_id: string };
       return route.fulfill({
@@ -69,7 +78,8 @@ test.beforeEach(async ({ page }) => {
 test("shows a recalled failure changing the action decision", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("SIBYL HEALTHY")).toBeVisible();
-  await expect(page.getByText("No metrics are invented.")).toBeVisible();
+  await expect(page.getByText("12 SCENARIOS")).toBeVisible();
+  await expect(page.getByText("100.00%").first()).toBeVisible();
 
   await page.getByRole("button", { name: "Evaluate action" }).click();
 

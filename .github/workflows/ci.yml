@@ -1,0 +1,143 @@
+name: Quality gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  control-plane:
+    name: Python control plane
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --project services/control-plane --all-extras --frozen --python 3.12
+
+      - name: Check formatting
+        run: uv run --project services/control-plane ruff format --check --config services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+
+      - name: Lint
+        run: uv run --project services/control-plane ruff check --config services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+
+      - name: Type check
+        run: uv run --project services/control-plane mypy --config-file services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+
+      - name: Test
+        run: uv run --project services/control-plane pytest -c services/control-plane/pyproject.toml services/control-plane/tests --cov=recallops --cov-report=term-missing
+
+      - name: Audit production dependencies
+        run: |
+          mkdir -p .data
+          uv export --project services/control-plane --format requirements-txt --no-emit-project --no-dev --no-hashes --output-file .data/audit-requirements.txt
+          uv tool run pip-audit --strict --requirement .data/audit-requirements.txt
+
+  web:
+    name: Web console
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.14.1
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Type check
+        run: npm --prefix apps/web run typecheck
+
+      - name: Lint
+        run: npm --prefix apps/web run lint
+
+      - name: Unit tests
+        run: npm --prefix apps/web run test
+
+      - name: Production build
+        run: npm --prefix apps/web run build
+
+      - name: Browser tests
+        run: npm --prefix apps/web run test:e2e
+
+      - name: Audit dependencies
+        run: npm audit --prefix apps/web --audit-level=high
+
+  contracts:
+    name: Receipt registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1
+        with:
+          version: v1.8.1
+          cache: true
+
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.14.1
+          cache: npm
+          cache-dependency-path: packages/contracts/package-lock.json
+
+      - name: Install viem bridge dependencies
+        run: npm ci --prefix packages/contracts
+
+      - name: Check Solidity formatting
+        run: forge fmt --check --root packages/contracts
+
+      - name: Lint Solidity
+        run: forge lint --root packages/contracts --severity high
+
+      - name: Test Solidity
+        run: forge test --root packages/contracts -vvv
+
+      - name: Check gas snapshot
+        run: forge snapshot --root packages/contracts --check packages/contracts/.gas-snapshot
+
+      - name: Check viem bridge
+        run: npm --prefix packages/contracts run check
+
+      - name: Audit dependencies
+        run: npm audit --prefix packages/contracts --audit-level=high

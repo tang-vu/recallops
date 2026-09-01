@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
@@ -18,6 +18,7 @@ from recallops.memory.port import MemorySubsystemError
 from recallops.models import (
     BaseAnchorRecord,
     BudgetAccount,
+    CounterpartyProfile,
     DecisionReceipt,
     EvaluationContext,
     ExecutionAuthorization,
@@ -163,6 +164,20 @@ class SibylMemoryStore:
         )
         profile_name = _stable_name("counterparty", failure.provider_id, failure.task_category)
         body = failure.model_dump(mode="json")
+        current = utc_now()
+        profile = CounterpartyProfile(
+            tenant_id=failure.tenant_id,
+            provider_id=failure.provider_id,
+            task_category=failure.task_category,
+            failed_jobs=1,
+            last_failure_fingerprint=failure.task_fingerprint,
+            last_verification_reason=failure.verification_reason,
+            source_session_id=failure.source_session_id,
+            probation_status="active",
+            probation_started_at=current,
+            probation_ends_at=current + timedelta(days=7),
+            updated_at=current,
+        )
         try:
             # WARM writes: exact failure and task-scoped counterparty consequence.
             failure_entity = self._client.set_entity(
@@ -171,16 +186,7 @@ class SibylMemoryStore:
             profile_entity = self._client.set_entity(
                 "counterparty_profile",
                 profile_name,
-                {
-                    "provider_id": failure.provider_id,
-                    "task_category": failure.task_category,
-                    "failed_jobs": 1,
-                    "successful_jobs": 0,
-                    "last_failure_fingerprint": failure.task_fingerprint,
-                    "last_verification_reason": failure.verification_reason,
-                    "source_session_id": str(failure.source_session_id),
-                    "probation_status": "active",
-                },
+                profile.model_dump(mode="json"),
                 status="probation",
             )
             # COLD write: verifier rejection is retained chronologically.
@@ -213,6 +219,38 @@ class SibylMemoryStore:
                 profile_entity["id"],
             ),
             self._write_result(MemoryTier.COLD, "VERIFICATION_FAILED", event_id, event_id),
+        ]
+
+    def write_counterparty_profile(self, profile: CounterpartyProfile) -> list[dict[str, str]]:
+        entity_name = _stable_name("counterparty", profile.provider_id, profile.task_category)
+        status = "probation" if profile.probation_status == "active" else "active"
+        try:
+            entity = self._client.set_entity(
+                "counterparty_profile",
+                entity_name,
+                profile.model_dump(mode="json"),
+                status=status,
+            )
+            event_id = self._client.write_event(
+                acted=[
+                    f"Counterparty {profile.provider_id} probation is "
+                    f"{profile.probation_status} for {profile.task_category}"
+                ],
+                extra={
+                    "event_type": "COUNTERPARTY_PROBATION_UPDATED",
+                    "entity_name": entity_name,
+                    "provider_id": profile.provider_id,
+                    "task_category": profile.task_category,
+                    "probation_status": profile.probation_status,
+                },
+            )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to update counterparty probation in Sibyl") from exc
+        return [
+            self._write_result(MemoryTier.WARM, "counterparty_profile", entity_name, entity["id"]),
+            self._write_result(
+                MemoryTier.COLD, "COUNTERPARTY_PROBATION_UPDATED", event_id, event_id
+            ),
         ]
 
     def write_permission(self, grant: PermissionGrant) -> list[dict[str, str]]:

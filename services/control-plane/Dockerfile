@@ -17,6 +17,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY services/control-plane/pyproject.toml services/control-plane/README.md ./services/control-plane/
 COPY services/control-plane/src ./services/control-plane/src
+COPY benchmark/results/latest.json ./benchmark/results/latest.json
 COPY --from=base-client /build/packages/contracts/dist ./packages/contracts/dist
 COPY --from=base-client /build/packages/contracts/node_modules ./packages/contracts/node_modules
 

@@ -83,6 +83,28 @@ def test_admin_mutations_are_disabled_when_token_is_unconfigured(tmp_path: Path)
     assert "disabled" in response.json()["detail"]
 
 
+def test_benchmark_endpoint_validates_the_persisted_artifact(tmp_path: Path) -> None:
+    artifact = tmp_path / "benchmark.json"
+    missing_client = TestClient(
+        create_app(memory_db=tmp_path / "missing-benchmark.db", benchmark_result=artifact)
+    )
+    assert missing_client.get("/v1/benchmark/latest").json()["available"] is False
+
+    repository_root = Path(__file__).resolve().parents[3]
+    artifact.write_text(
+        (repository_root / "benchmark" / "results" / "latest.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    valid_client = TestClient(
+        create_app(memory_db=tmp_path / "valid-benchmark.db", benchmark_result=artifact)
+    )
+    response = valid_client.get("/v1/benchmark/latest")
+
+    assert response.status_code == 200
+    assert response.json()["available"] is True
+    assert response.json()["scenario_count"] == 12
+
+
 def test_evaluation_and_execution_are_durably_idempotent(tmp_path: Path) -> None:
     client, _ = client_for(tmp_path)
     seed_policy(client)

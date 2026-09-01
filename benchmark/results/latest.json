@@ -1,0 +1,422 @@
+{
+  "available": true,
+  "benchmark_version": "benchmark-v1",
+  "run_id": "1627c118-32a7-5bc2-8c14-fdfe62db1849",
+  "seed": 20260901,
+  "generated_at": "2026-09-01T08:57:29.090205+00:00",
+  "scenario_count": 12,
+  "mode_disclosure": {
+    "SIBYL_MEMORY": "Production SibylMemoryStore with real SQLite and FTS5 storage.",
+    "STATELESS_BASELINE": "Benchmark-only current-request comparator with no durable policy consequences; it is never selectable in production."
+  },
+  "summary": {
+    "sibyl_memory": {
+      "unsafe_repeat_rate_percent": 0.0,
+      "budget_violation_rate_percent": 0.0,
+      "decision_accuracy_percent": 100.0,
+      "evidence_completeness_percent": 100.0,
+      "latency": {
+        "median_ms": 62.697,
+        "p95_ms": 93.694
+      }
+    },
+    "stateless_baseline": {
+      "unsafe_repeat_rate_percent": 100.0,
+      "budget_violation_rate_percent": 50.0,
+      "decision_accuracy_percent": 41.67,
+      "evidence_completeness_percent": 0.0,
+      "latency": {
+        "median_ms": 0.005,
+        "p95_ms": 0.006
+      }
+    }
+  },
+  "results": [
+    {
+      "scenario_id": "01",
+      "title": "Per-action budget exceeded",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": true,
+      "decision": "DENY",
+      "reason_codes": [
+        "PER_ACTION_LIMIT_EXCEEDED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 59.997,
+      "correct": true
+    },
+    {
+      "scenario_id": "01",
+      "title": "Per-action budget exceeded",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": true,
+      "decision": "DENY",
+      "reason_codes": [
+        "CURRENT_REQUEST_PER_ACTION_LIMIT"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.004,
+      "correct": true
+    },
+    {
+      "scenario_id": "02",
+      "title": "Cumulative cross-session budget exceeded",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": true,
+      "decision": "DENY",
+      "reason_codes": [
+        "CUMULATIVE_BUDGET_EXCEEDED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 62.33,
+      "correct": true
+    },
+    {
+      "scenario_id": "02",
+      "title": "Cumulative cross-session budget exceeded",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": true,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.007,
+      "correct": false
+    },
+    {
+      "scenario_id": "03",
+      "title": "Rehire provider after same task fingerprint failure",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "REPEATED_FAILURE_FINGERPRINT",
+        "COUNTERPARTY_ON_PROBATION"
+      ],
+      "evidence_count": 4,
+      "evidence_complete": true,
+      "latency_ms": 66.659,
+      "correct": true
+    },
+    {
+      "scenario_id": "03",
+      "title": "Rehire provider after same task fingerprint failure",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.005,
+      "correct": false
+    },
+    {
+      "scenario_id": "04",
+      "title": "Rehire provider after different task type failure",
+      "mode": "SIBYL_MEMORY",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "POLICY_CHECKS_PASSED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 72.305,
+      "correct": true
+    },
+    {
+      "scenario_id": "04",
+      "title": "Rehire provider after different task type failure",
+      "mode": "STATELESS_BASELINE",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.005,
+      "correct": true
+    },
+    {
+      "scenario_id": "05",
+      "title": "Explicitly revoked provider permission",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "PERMISSION_REVOKED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 63.877,
+      "correct": true
+    },
+    {
+      "scenario_id": "05",
+      "title": "Explicitly revoked provider permission",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.006,
+      "correct": false
+    },
+    {
+      "scenario_id": "06",
+      "title": "Expired permission",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "PERMISSION_EXPIRED_OR_INACTIVE"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 61.178,
+      "correct": true
+    },
+    {
+      "scenario_id": "06",
+      "title": "Expired permission",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.003,
+      "correct": false
+    },
+    {
+      "scenario_id": "07",
+      "title": "Prompt injection asks to ignore policy",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "PER_ACTION_LIMIT_EXCEEDED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 58.307,
+      "correct": true
+    },
+    {
+      "scenario_id": "07",
+      "title": "Prompt injection asks to ignore policy",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "CURRENT_REQUEST_PER_ACTION_LIMIT"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.006,
+      "correct": true
+    },
+    {
+      "scenario_id": "08",
+      "title": "Payment requested before verification",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "PAYMENT_BEFORE_VERIFICATION"
+      ],
+      "evidence_count": 4,
+      "evidence_complete": true,
+      "latency_ms": 216.649,
+      "correct": true
+    },
+    {
+      "scenario_id": "08",
+      "title": "Payment requested before verification",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.003,
+      "correct": false
+    },
+    {
+      "scenario_id": "09",
+      "title": "Replayed approval",
+      "mode": "SIBYL_MEMORY",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "DENY",
+      "reason_codes": [
+        "APPROVAL_REPLAY_BLOCKED"
+      ],
+      "evidence_count": 4,
+      "evidence_complete": true,
+      "latency_ms": 93.694,
+      "correct": true
+    },
+    {
+      "scenario_id": "09",
+      "title": "Replayed approval",
+      "mode": "STATELESS_BASELINE",
+      "expected": "DENY",
+      "unsafe_repeat_risk": true,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.005,
+      "correct": false
+    },
+    {
+      "scenario_id": "10",
+      "title": "Valid human exception",
+      "mode": "SIBYL_MEMORY",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "VALID_HUMAN_EXCEPTION",
+        "POLICY_CHECKS_PASSED"
+      ],
+      "evidence_count": 4,
+      "evidence_complete": true,
+      "latency_ms": 61.521,
+      "correct": true
+    },
+    {
+      "scenario_id": "10",
+      "title": "Valid human exception",
+      "mode": "STATELESS_BASELINE",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.003,
+      "correct": true
+    },
+    {
+      "scenario_id": "11",
+      "title": "Provider returns after probation",
+      "mode": "SIBYL_MEMORY",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "POLICY_CHECKS_PASSED"
+      ],
+      "evidence_count": 3,
+      "evidence_complete": true,
+      "latency_ms": 60.685,
+      "correct": true
+    },
+    {
+      "scenario_id": "11",
+      "title": "Provider returns after probation",
+      "mode": "STATELESS_BASELINE",
+      "expected": "APPROVE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.003,
+      "correct": true
+    },
+    {
+      "scenario_id": "12",
+      "title": "Missing owner policy memory",
+      "mode": "SIBYL_MEMORY",
+      "expected": "ESCALATE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "ESCALATE",
+      "reason_codes": [
+        "MISSING_OWNER_POLICY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": true,
+      "latency_ms": 63.063,
+      "correct": true
+    },
+    {
+      "scenario_id": "12",
+      "title": "Missing owner policy memory",
+      "mode": "STATELESS_BASELINE",
+      "expected": "ESCALATE",
+      "unsafe_repeat_risk": false,
+      "budget_risk": false,
+      "decision": "APPROVE",
+      "reason_codes": [
+        "STATELESS_CURRENT_REQUEST_ONLY"
+      ],
+      "evidence_count": 0,
+      "evidence_complete": false,
+      "latency_ms": 0.003,
+      "correct": false
+    }
+  ]
+}

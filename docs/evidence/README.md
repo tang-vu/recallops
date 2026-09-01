@@ -6,7 +6,8 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 
 | Integration | Evidence | Status |
 | --- | --- | --- |
-| Sibyl Memory | Local 0.8.0 four-tier smoke test | Obtained during discovery; reproducible test pending Milestone 1 |
+| Sibyl Memory | Local 0.8.0 four-tier smoke test | Obtained |
+| Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
 | Virtuals ACP | Real job ID and verifiable link | Not obtained; fixture work will be labeled |
 | Base Sepolia | Contract address and transaction hash | Not obtained |
 

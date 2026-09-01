@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recallops-control-plane"
+version = "0.1.0"
+description = "Memory-gated control plane for autonomous agent commerce"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = { text = "MIT" }
+authors = [{ name = "Vu Tang" }]
+dependencies = [
+  "pydantic>=2.11,<3",
+  "sibyl-memory-client==0.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.17,<2",
+  "pytest>=8.4,<9",
+  "pytest-cov>=6.2,<7",
+  "ruff>=0.12,<1",
+]
+
+[project.scripts]
+recallops-demo-session-1 = "recallops.demo.session1:main"
+recallops-demo-session-2 = "recallops.demo.session2:main"
+recallops-demo-reset = "recallops.demo.reset:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/recallops"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "S", "UP", "B", "A", "C4", "DTZ", "PTH", "RUF"]
+ignore = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["sibyl_memory_client", "sibyl_memory_client.*"]
+ignore_missing_imports = true

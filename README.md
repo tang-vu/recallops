@@ -27,11 +27,14 @@ The first vertical slice is built before the dashboard:
 - Recall of the matching failure changes Agent A from the cheapest candidate to a denied candidate.
 - Disabling mandatory memory changes the safe result to `ESCALATE`; the explicit benchmark-only stateless baseline demonstrates the unsafe repeat separately.
 
-Production reads and writes will remain easy to locate in:
+Production reads and writes are easy to locate in:
 
-- `services/control-plane/src/recallops/memory/sibyl_store.py`
-- `services/control-plane/src/recallops/policy/engine.py`
-- `services/control-plane/src/recallops/orchestration/guard.py`
+- [Sibyl production adapter](services/control-plane/src/recallops/memory/sibyl_store.py): explicit HOT, WARM, COLD, and REFERENCE SDK calls
+- [Deterministic policy engine](services/control-plane/src/recallops/policy/engine.py): evidence-backed decision semantics
+- [Commerce guard](services/control-plane/src/recallops/orchestration/guard.py): mandatory read, evaluate, persist ordering and fail-closed behavior
+- [Fresh-process integration test](services/control-plane/tests/test_fresh_process.py): Process A writes and exits; Process B recalls and changes the decision
+
+See [the memory implementation note](docs/memory-implementation.md) for the exact call map and entity naming rules.
 
 ## Architecture
 
@@ -71,7 +74,42 @@ Development began at `2026-09-01T06:10:52Z`, inside the official September 1 to 
 
 ## Quick start
 
-Milestone 1 adds the executable two-process demo and its exact commands. The supported local toolchain is Python 3.12 with uv, Node.js 20 or newer with pnpm, and Foundry for contracts.
+The supported control-plane toolchain is Python 3.12 with [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync --all-packages --all-extras --python 3.12
+```
+
+Run the load-bearing proof from the repository root:
+
+```bash
+make demo-reset
+make demo-session-1
+make demo-session-2
+```
+
+On Windows without GNU Make, run the equivalent commands:
+
+```powershell
+$demoDb = "$PWD\.data\demo\recallops-demo.db"
+uv run --project services/control-plane python -m recallops.demo.reset --db $demoDb --confirm RESET_RECALLOPS_DEMO
+uv run --project services/control-plane python -m recallops.demo.session1 --db $demoDb
+uv run --project services/control-plane python -m recallops.demo.session2 --db $demoDb
+```
+
+Session output is structured JSON. It displays the session UUID, operating-system PID, UTC timestamp, Git commit, exact Sibyl writes or recalled records, reason codes, decision, and integration mode. `demo-reset` refuses every path except the exact project-owned `.data/demo/recallops-demo.db` target.
+
+## Tests
+
+```bash
+make check
+```
+
+The Milestone 1 quality gate runs Ruff formatting and lint, mypy strict mode, real temporary SQLite and FTS5-capable Sibyl integration tests, tenant isolation, decimal policy tests, and the separate-process proof. The latest executed results are recorded in [STATUS.md](STATUS.md).
+
+## Partner integration status
+
+Virtuals ACP and Base Sepolia are not yet claimed. Current demo execution remains `NOT_EXECUTED` after Agent B approval and clearly says why. Real partner identifiers will appear only after verifiable actions exist.
 
 ## Security and privacy
 

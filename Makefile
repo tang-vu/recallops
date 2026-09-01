@@ -1,4 +1,7 @@
-.PHONY: help check demo-session-1 demo-session-2 demo-reset benchmark
+.PHONY: help install check demo-session-1 demo-session-2 demo-reset benchmark
+
+UV ?= uv
+DEMO_DB ?= $(CURDIR)/.data/demo/recallops-demo.db
 
 help:
 	@echo "RecallOps targets"
@@ -8,17 +11,23 @@ help:
 	@echo "  demo-reset      Reset only the validated demo database with confirmation"
 	@echo "  benchmark       Compare Sibyl memory with the explicit stateless baseline"
 
+install:
+	$(UV) sync --all-packages --all-extras --python 3.12
+
 check:
-	@echo "Quality gates are added with each workspace milestone."
+	$(UV) run --project services/control-plane ruff format --check --config services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+	$(UV) run --project services/control-plane ruff check --config services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+	$(UV) run --project services/control-plane mypy --config-file services/control-plane/pyproject.toml services/control-plane/src services/control-plane/tests
+	$(UV) run --project services/control-plane pytest -c services/control-plane/pyproject.toml services/control-plane/tests --cov=recallops --cov-report=term-missing
 
 demo-session-1:
-	@echo "Available after the Milestone 1 vertical slice."
+	$(UV) run --project services/control-plane python -m recallops.demo.session1 --db "$(DEMO_DB)"
 
 demo-session-2:
-	@echo "Available after the Milestone 1 vertical slice."
+	$(UV) run --project services/control-plane python -m recallops.demo.session2 --db "$(DEMO_DB)"
 
 demo-reset:
-	@echo "Available after the Milestone 1 vertical slice."
+	$(UV) run --project services/control-plane python -m recallops.demo.reset --db "$(DEMO_DB)" --confirm RESET_RECALLOPS_DEMO
 
 benchmark:
 	@echo "Available after the benchmark milestone."

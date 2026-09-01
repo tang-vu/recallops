@@ -10,6 +10,8 @@ import type {
   Decision,
   DecisionReceipt,
   EvaluationResponse,
+  ExecutionResponse,
+  JobRecord,
   JournalEvent,
   SystemStatus,
 } from "@/lib/types";
@@ -68,6 +70,10 @@ export function ControlPlaneDashboard() {
     queryKey: ["benchmark"],
     queryFn: () => apiRequest<{ available: boolean; reason: string }>("v1/benchmark/latest"),
   });
+  const jobsQuery = useQuery({
+    queryKey: ["jobs", TENANT_ID],
+    queryFn: () => apiRequest<JobRecord[]>(`v1/jobs?tenant_id=${TENANT_ID}&limit=20`),
+  });
 
   const metrics = useMemo(() => summarizeDecisions(decisionsQuery.data ?? []), [decisionsQuery.data]);
   const latestReceipt = receipt ?? decisionsQuery.data?.[0] ?? null;
@@ -116,16 +122,27 @@ export function ControlPlaneDashboard() {
   const executeMutation = useMutation({
     mutationFn: async () => {
       if (!receipt) throw new Error("Evaluate an action first.");
-      return apiRequest<{ executor_status: string; note: string }>(
+      return apiRequest<ExecutionResponse>(
         `v1/actions/${receipt.action_id}/execute?tenant_id=${encodeURIComponent(receipt.tenant_id)}`,
         {
           method: "POST",
           headers: { "Idempotency-Key": `web-execute-${receipt.receipt_id}` },
-          body: JSON.stringify({ receipt_id: receipt.receipt_id, adapter_payload: {} }),
+          body: JSON.stringify({
+            receipt_id: receipt.receipt_id,
+            adapter_payload: { outputFormat: "JSON evidence report" },
+          }),
         },
       );
     },
-    onSuccess: (result) => setExecutionNote(`${result.executor_status}: ${result.note}`),
+    onSuccess: async (result) => {
+      const jobReference = result.job ? ` Job ${result.job.job_id}.` : "";
+      setExecutionNote(`${result.executor_status}: ${result.note}${jobReference}`);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["decisions", TENANT_ID] }),
+        queryClient.invalidateQueries({ queryKey: ["evidence", TENANT_ID] }),
+        queryClient.invalidateQueries({ queryKey: ["jobs", TENANT_ID] }),
+      ]);
+    },
   });
 
   const demoMutation = useMutation({
@@ -148,6 +165,7 @@ export function ControlPlaneDashboard() {
 
   const status = statusQuery.data;
   const connected = Boolean(status?.memory_healthy);
+  const latestJob = jobsQuery.data?.[0] ?? null;
 
   return (
     <div className="app-shell">
@@ -209,7 +227,7 @@ export function ControlPlaneDashboard() {
             <form className="action-card" onSubmit={submitAction}>
               <div className="form-grid">
                 <label>Task<input value="Dependency security audit" readOnly /></label>
-                <label>Provider<select value={provider} onChange={(event) => setProvider(event.target.value)}><option value="agent-a">Agent A · 1.00 USDC</option><option value="agent-b">Agent B · 1.50 USDC</option><option value="agent-c">Agent C · untested</option></select></label>
+                <label>Provider<select value={provider} onChange={(event) => { const selected = event.target.value; setProvider(selected); if (selected === "agent-a") setAmount("1.00"); if (selected === "agent-b") setAmount("1.50"); }}><option value="agent-a">Agent A · 1.00 USDC</option><option value="agent-b">Agent B · 1.50 USDC</option><option value="agent-c">Agent C · untested</option></select></label>
                 <label>Offering<input value="Deterministic dependency audit" readOnly /></label>
                 <label>Requested amount<div className="input-suffix"><input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} aria-label="Requested amount in USDC" /><span>USDC</span></div></label>
                 <label>Risk class<select value={risk} onChange={(event) => setRisk(event.target.value)}><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label>
@@ -260,7 +278,7 @@ export function ControlPlaneDashboard() {
             <div className="section-heading"><div><p className="eyebrow">VERIFIABLE, NOT DECORATIVE</p><h2 id="integrations-title">Integration proof</h2></div></div>
             <div className="integration-grid">
               <IntegrationCard name="Sibyl Memory" status={connected ? "VERIFIED LOCAL" : "UNAVAILABLE"} tone={connected ? "green" : "red"} rows={[["Database", status?.memory_path_hint ?? "Redacted"], ["Runtime", "sibyl-memory-client 0.8.0"], ["Evidence", "Reads and writes on critical path"]]} />
-              <IntegrationCard name="Virtuals ACP" status={status?.virtuals_mode ?? "FIXTURE MODE"} tone="amber" rows={[["ACP job", "No real job recorded"], ["Adapter", "Milestone 4"], ["Claim", "Not claimed"]]} />
+              <IntegrationCard name="Virtuals ACP" status={status?.virtuals_mode ?? "FIXTURE MODE"} tone={latestJob?.integration_mode === "LIVE VIRTUALS" ? "green" : "amber"} rows={[["ACP job", latestJob?.job_id ?? "No job recorded"], ["Adapter", "ACP CLI boundary ready"], ["Claim", latestJob?.integration_mode === "LIVE VIRTUALS" ? "Live evidence recorded" : "Not claimed"]]} />
               <IntegrationCard name="Base" status={status?.base_mode ?? "LOCAL ONLY"} tone="amber" rows={[["Network", `Base Sepolia · ${status?.base_chain_id ?? 84532}`], ["Transaction", "No real transaction recorded"], ["Claim", "Not claimed"]]} />
             </div>
           </section>

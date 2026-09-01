@@ -19,6 +19,7 @@ test.beforeEach(async ({ page }) => {
     if (path.includes("v1/decisions")) return route.fulfill({ json: [] });
     if (path.includes("v1/memory/evidence")) return route.fulfill({ json: [] });
     if (path.includes("v1/counterparties")) return route.fulfill({ json: [] });
+    if (path.endsWith("v1/jobs")) return route.fulfill({ json: [] });
     if (path.includes("v1/benchmark/latest")) return route.fulfill({ json: { available: false, reason: "No benchmark run has been persisted yet." } });
     if (path.endsWith("v1/actions/evaluate")) {
       const request = route.request().postDataJSON() as { action_id: string; session_id: string };

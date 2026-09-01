@@ -72,3 +72,28 @@ export interface EvaluationResponse {
   writes: Array<Record<string, string>>;
   idempotent_replay: boolean;
 }
+
+export interface JobRecord {
+  job_id: string;
+  integration_mode: "FIXTURE MODE" | "LIVE VIRTUALS";
+  tenant_id: string;
+  action_id: string;
+  receipt_id: string;
+  provider_id: string;
+  task_category: string;
+  task_fingerprint: string;
+  chain_id: number;
+  offering_name: string | null;
+  status: string;
+  deliverable: string | null;
+  payment_metadata: Record<string, unknown>;
+  verifiable_links: string[];
+  adapter_response_digest: string | null;
+}
+
+export interface ExecutionResponse {
+  executor_status: string;
+  note: string;
+  idempotent_replay: boolean;
+  job: JobRecord | null;
+}

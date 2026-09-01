@@ -9,10 +9,11 @@ The economic guard in [`orchestration/guard.py`](../services/control-plane/src/r
 1. Call `MemoryPort.load_evaluation_context` before evaluating the action.
 2. Retrieve mandatory owner policy, cumulative budget, and a task-scoped matching failure from Sibyl.
 3. Pass the recalled records to the pure deterministic policy engine.
-4. Persist the action-bound decision receipt through `MemoryPort.write_decision`.
-5. Return `ESCALATE` if a mandatory read or receipt write fails.
+4. Persist the exact proposed action through `MemoryPort.write_proposed_action`.
+5. Persist the action-bound decision receipt through `MemoryPort.write_decision`.
+6. Return `ESCALATE` if a mandatory read or write fails.
 
-No execution adapter is called in this milestone. Later adapters must accept only an unexpired `APPROVE` receipt for the same action.
+The execution gate reloads the durable proposed action and receipt before any adapter call. It writes an action-bound authorization, validates current offering price against the approved ceiling, then permits one idempotent Virtuals dispatch. The resulting job and its receipt link are written back through Sibyl.
 
 ## Exact Sibyl calls
 
@@ -28,9 +29,10 @@ All calls live in [`memory/sibyl_store.py`](../services/control-plane/src/recall
 | WARM | Permission grant or revocation | `set_entity("permission_grant", ...)` / `get_entity(...)` | Agent, provider, category, and validity scope |
 | WARM | Human exception and approval | `set_entity("human_exception", ...)` / `set_entity("human_approval", ...)` | Scoped override evidence; never a broad policy bypass |
 | WARM | Decision receipt | `set_entity("decision_receipt", ...)` | Cross-session audit and future replay protection |
+| WARM | Proposed action | `set_entity("proposed_action", ...)` / `get_entity(...)` | Binds provider, offering, amount, and task to later execution |
 | WARM | Idempotency and execution authorization | `set_entity(...)` / `get_entity(...)` | Exactly-once request binding before adapter dispatch |
 | WARM | Commerce job | `set_entity("commerce_job", ...)` | Callback deduplication, verification, and payment state |
-| COLD | Policy, budget, verification, and decision events | `write_event(...)` | Chronological audit timeline |
+| COLD | Policy, action, decision, authorization, ACP, and verification events | `write_event(...)` | Chronological audit timeline and approval-before-dispatch trace |
 | REFERENCE | Versioned policy schema metadata | `set_reference(...)` | Names the decision set and decimal encoding |
 | ARCHIVE | Superseded records | Not called in Milestone 1 | `archive_entity(...)` will be wrapped when policy lifecycle APIs arrive in Milestone 2 |
 
@@ -59,7 +61,7 @@ Session 1 persists:
 - Agent A task-scoped counterparty profile on probation
 - Chronological policy, budget, and failed-verification events
 
-It closes `MemoryClient.storage` and exits. Session 2 creates a new `MemoryClient`, PID, and session UUID. The matching Agent A failure is recalled and included verbatim in `memory_evidence`, producing `DENY` with `REPEATED_FAILURE_FINGERPRINT`. Agent B has no matching failure and receives `APPROVE` under the same recalled policy and budget.
+It closes `MemoryClient.storage` and exits. Session 2 creates a new `MemoryClient`, PID, and session UUID. The matching Agent A failure is recalled and included verbatim in `memory_evidence`, producing `DENY` with `REPEATED_FAILURE_FINGERPRINT`. Agent B has no matching failure and receives `APPROVE` under the same recalled policy and budget. The demo then exercises the approved adapter path in `FIXTURE MODE`, writes an unmistakable `fixture:` job, and links it to the receipt. A live ACP job remains a separately gated mode.
 
 The test fails if the WARM Sibyl writes or reads are removed because Session 2 then lacks mandatory policy state or cannot recall the Agent A failure.
 

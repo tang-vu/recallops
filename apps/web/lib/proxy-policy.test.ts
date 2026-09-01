@@ -5,6 +5,7 @@ import { isAdminDemoPath, isAllowedProxyRequest } from "./proxy-policy";
 describe("control-plane proxy allowlist", () => {
   it("allows only judge-facing read and action routes", () => {
     expect(isAllowedProxyRequest("GET", "v1/system/status")).toBe(true);
+    expect(isAllowedProxyRequest("GET", "v1/jobs")).toBe(true);
     expect(isAllowedProxyRequest("POST", "v1/actions/123e4567-e89b-12d3-a456-426614174000/execute")).toBe(true);
     expect(isAllowedProxyRequest("POST", "v1/policies")).toBe(false);
     expect(isAllowedProxyRequest("GET", "v1/openapi.json")).toBe(false);

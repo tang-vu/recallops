@@ -4,6 +4,7 @@ const GET_PATHS = [
   /^v1\/decisions(?:\/[0-9a-f-]+)?$/,
   /^v1\/memory\/evidence$/,
   /^v1\/counterparties$/,
+  /^v1\/jobs$/,
   /^v1\/benchmark\/latest$/,
 ];
 

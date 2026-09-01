@@ -8,6 +8,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from recallops.integrations.virtuals import VirtualsJobSnapshot
 from recallops.models import (
     BudgetAccount,
     DecisionReceipt,
@@ -62,7 +63,9 @@ class ExecutionAuthorizationResponse(StrictModel):
     writes: tuple[dict[str, str], ...]
     idempotent_replay: bool
     executor_status: str = "NOT_DISPATCHED"
-    note: str = "Authorization is durable; a live adapter is not configured in Milestone 2."
+    note: str
+    job: JobRecord | None = None
+    virtuals_snapshot: VirtualsJobSnapshot | None = None
 
 
 class SystemStatusResponse(StrictModel):

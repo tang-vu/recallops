@@ -12,9 +12,12 @@ from recallops.demo.common import (
     resolve_database,
     session_id,
 )
+from recallops.integrations.virtuals import VirtualsFixtureAdapter
 from recallops.memory.sibyl_store import SibylMemoryStore
 from recallops.models import Decision
+from recallops.orchestration.execution import ExecutionGate, request_digest
 from recallops.orchestration.guard import CommerceGuard
+from recallops.orchestration.virtuals import VirtualsDispatcher
 
 
 def run(database: str, tenant_id: str = DEMO_TENANT) -> dict[str, object]:
@@ -31,8 +34,40 @@ def run(database: str, tenant_id: str = DEMO_TENANT) -> dict[str, object]:
             },
         )
         guard = CommerceGuard(memory)
-        agent_a_receipt, agent_a_writes = guard.evaluate(action("agent-a", current_session))
-        agent_b_receipt, agent_b_writes = guard.evaluate(action("agent-b", current_session))
+        agent_a_action = action("agent-a", current_session)
+        agent_b_action = action("agent-b", current_session)
+        agent_a_receipt, agent_a_writes = guard.evaluate(agent_a_action)
+        agent_b_receipt, agent_b_writes = guard.evaluate(agent_b_action)
+        execution: dict[str, object] = {
+            "status": "NOT_AUTHORIZED",
+            "mode": "FIXTURE MODE",
+            "virtuals_job_id": None,
+            "base_transaction_hash": None,
+        }
+        execution_writes: list[dict[str, str]] = []
+        if agent_b_receipt.decision is Decision.APPROVE:
+            authorization, _, execution_writes = ExecutionGate(memory).authorize(
+                receipt_id=agent_b_receipt.receipt_id,
+                action_id=agent_b_action.action_id,
+                idempotency_key=f"demo-session-2-{agent_b_action.action_id}",
+                request_body_digest=request_digest(
+                    {"action_id": str(agent_b_action.action_id), "mode": "FIXTURE MODE"}
+                ),
+            )
+            dispatch = VirtualsDispatcher(VirtualsFixtureAdapter(), live_enabled=False).dispatch(
+                memory=memory,
+                authorization=authorization,
+                action=agent_b_action,
+                requirements={"outputFormat": "JSON evidence report"},
+            )
+            execution_writes.extend(dispatch.writes)
+            execution = {
+                "status": dispatch.executor_status,
+                "mode": "FIXTURE MODE",
+                "virtuals_job_id": dispatch.job.job_id if dispatch.job else None,
+                "base_transaction_hash": None,
+                "note": dispatch.note,
+            }
         health = memory.health()
 
     failure_evidence = [
@@ -52,13 +87,8 @@ def run(database: str, tenant_id: str = DEMO_TENANT) -> dict[str, object]:
         "agent_a_decision": agent_a_receipt.model_dump(mode="json"),
         "agent_b_decision": agent_b_receipt.model_dump(mode="json"),
         "selected_provider": "Agent B" if agent_b_receipt.decision == Decision.APPROVE else None,
-        "execution": {
-            "status": "NOT_EXECUTED",
-            "reason": "Virtuals fixture and live adapters are introduced in Milestone 4.",
-            "virtuals_job_id": None,
-            "base_transaction_hash": None,
-        },
-        "new_sibyl_writes": agent_a_writes + agent_b_writes,
+        "execution": execution,
+        "new_sibyl_writes": agent_a_writes + agent_b_writes + execution_writes,
         "sibyl_health": health,
         "process_terminated_after_output": True,
     }

@@ -37,6 +37,11 @@ from recallops.api.schemas import (
     PolicyWriteRequest,
     SystemStatusResponse,
 )
+from recallops.integrations.virtuals import (
+    VirtualsFixtureAdapter,
+    VirtualsLiveAdapter,
+    VirtualsPort,
+)
 from recallops.memory.port import MemorySubsystemError
 from recallops.memory.sibyl_store import SibylMemoryStore
 from recallops.models import (
@@ -58,6 +63,12 @@ from recallops.orchestration.execution import (
 )
 from recallops.orchestration.guard import CommerceGuard
 from recallops.orchestration.jobs import JobStateMachine, JobTransitionError
+from recallops.orchestration.virtuals import (
+    VirtualsDispatchBlockedError,
+    VirtualsDispatcher,
+    VirtualsDispatchUnavailableError,
+    VirtualsDispatchUncertainError,
+)
 from recallops.policy.engine import PolicyEngine
 
 LOGGER = logging.getLogger("recallops.api")
@@ -74,9 +85,31 @@ def _path_hint(path: Path | None) -> str | None:
     return f".../{path.name}" if path is not None else None
 
 
-def create_app(*, memory_db: Path | None = None, admin_token: str | None = None) -> FastAPI:
+def create_app(
+    *,
+    memory_db: Path | None = None,
+    admin_token: str | None = None,
+    virtuals_adapter: VirtualsPort | None = None,
+    enable_live_virtuals: bool | None = None,
+) -> FastAPI:
     configured_db = _configured_path(memory_db)
     configured_admin_token = admin_token or os.getenv("RECALLOPS_ADMIN_TOKEN") or None
+    configured_virtuals_mode = os.getenv("RECALLOPS_VIRTUALS_MODE", "FIXTURE MODE")
+    if virtuals_adapter is not None:
+        configured_virtuals = virtuals_adapter
+    elif configured_virtuals_mode == "FIXTURE MODE":
+        configured_virtuals = VirtualsFixtureAdapter()
+    elif configured_virtuals_mode == "LIVE VIRTUALS":
+        configured_virtuals = VirtualsLiveAdapter(
+            executable=os.getenv("RECALLOPS_ACP_EXECUTABLE", "acp")
+        )
+    else:
+        raise ValueError("RECALLOPS_VIRTUALS_MODE must be FIXTURE MODE or LIVE VIRTUALS")
+    live_virtuals_enabled = (
+        enable_live_virtuals
+        if enable_live_virtuals is not None
+        else os.getenv("RECALLOPS_ENABLE_LIVE_VIRTUALS", "false").lower() == "true"
+    )
     application = FastAPI(
         title="RecallOps Control Plane",
         version=__version__,
@@ -180,10 +213,10 @@ def create_app(*, memory_db: Path | None = None, admin_token: str | None = None)
             memory_configured=configured_db is not None,
             memory_healthy=healthy,
             memory_path_hint=_path_hint(configured_db),
-            virtuals_mode=os.getenv("RECALLOPS_VIRTUALS_MODE", "FIXTURE MODE"),
+            virtuals_mode=configured_virtuals.mode,
             base_mode=os.getenv("RECALLOPS_BASE_MODE", "LOCAL ONLY"),
             base_chain_id=int(os.getenv("RECALLOPS_BASE_CHAIN_ID", "84532")),
-            fixture_data=True,
+            fixture_data=configured_virtuals.mode == "FIXTURE MODE",
         )
 
     @application.post(
@@ -305,11 +338,40 @@ def create_app(*, memory_db: Path | None = None, admin_token: str | None = None)
         digest = request_digest({"action_id": str(action_id), **payload.model_dump(mode="json")})
         try:
             with store(tenant_id) as memory:
+                proposed_action = memory.get_proposed_action(str(action_id))
+                if proposed_action is None or proposed_action.tenant_id != tenant_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Execution requires the durable action bound to this receipt.",
+                    )
                 authorization, replay, writes = ExecutionGate(memory).authorize(
                     receipt_id=payload.receipt_id,
                     action_id=action_id,
                     idempotency_key=idempotency_key,
                     request_body_digest=digest,
+                )
+                requirements = payload.adapter_payload or {
+                    "task": proposed_action.offering,
+                    "taskCategory": proposed_action.task_category,
+                    "taskFingerprint": proposed_action.task_fingerprint,
+                    "rationale": proposed_action.rationale,
+                }
+                dispatch = VirtualsDispatcher(
+                    configured_virtuals, live_enabled=live_virtuals_enabled
+                ).dispatch(
+                    memory=memory,
+                    authorization=authorization,
+                    action=proposed_action,
+                    requirements=requirements,
+                )
+                return ExecutionAuthorizationResponse(
+                    authorization=dispatch.authorization,
+                    writes=(*writes, *dispatch.writes),
+                    idempotent_replay=replay or dispatch.already_dispatched,
+                    executor_status=dispatch.executor_status,
+                    note=dispatch.note,
+                    job=dispatch.job,
+                    virtuals_snapshot=dispatch.snapshot,
                 )
         except ReceiptNotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
@@ -317,11 +379,15 @@ def create_app(*, memory_db: Path | None = None, admin_token: str | None = None)
             raise HTTPException(status_code=status.HTTP_410_GONE, detail=str(exc)) from exc
         except (ExecutionDeniedError, ReplayConflictError) as exc:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-        return ExecutionAuthorizationResponse(
-            authorization=authorization,
-            writes=tuple(writes),
-            idempotent_replay=replay,
-        )
+        except VirtualsDispatchBlockedError as exc:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+        except (VirtualsDispatchUnavailableError, VirtualsDispatchUncertainError) as exc:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+        except MemorySubsystemError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Mandatory Sibyl execution state is unavailable; commerce is stopped.",
+            ) from exc
 
     @application.get("/v1/decisions/{receipt_id}")
     def get_decision(receipt_id: UUID, tenant_id: str) -> Any:
@@ -457,6 +523,11 @@ def create_app(*, memory_db: Path | None = None, admin_token: str | None = None)
         if job is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
         return job
+
+    @application.get("/v1/jobs")
+    def list_jobs(tenant_id: str, limit: Annotated[int, Query(ge=1, le=500)] = 100) -> Any:
+        with store(tenant_id) as memory:
+            return memory.list_jobs(limit)
 
     def run_demo_process(module: str) -> DemoProcessResponse:
         if configured_db is None:

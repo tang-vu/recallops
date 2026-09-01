@@ -27,7 +27,9 @@ FastAPI control plane
   |-- SibylMemoryStore (only production MemoryPort)
   |     `-- local SQLite + FTS5, tenant isolated
   |
-  |-- VirtualsPort [Milestone 4]
+  |-- VirtualsPort
+  |     |-- VirtualsFixtureAdapter [explicit fixture IDs]
+  |     `-- VirtualsLiveAdapter [ACP CLI JSON, Base Sepolia only]
   `-- Base receipt anchoring [Milestone 5]
 ```
 
@@ -89,6 +91,9 @@ The execution gate and job state machine enforce these invariants:
 - `ESCALATE` requires an active human approval bound to the same receipt and action.
 - Reusing the same idempotency key and payload returns the original result.
 - Reusing a key or receipt with a different payload produces a conflict.
+- Current Virtuals offering price and currency cannot exceed the approved action ceiling.
+- A live ACP call is disabled by default even when live mode is selected.
+- An uncertain ACP failure cannot be automatically retried from the same authorization.
 - Duplicate provider callbacks return the existing job without another Sibyl write.
 - Only `SUBMITTED` can become verified.
 - Only `VERIFIED_PASSED` can become `PAYMENT_AUTHORIZED`.
@@ -98,4 +103,4 @@ The execution gate and job state machine enforce these invariants:
 
 The root Compose service runs the control plane on loopback and persists the Sibyl file in a named Docker volume. Administrative mutations remain disabled unless `RECALLOPS_ADMIN_TOKEN` is explicitly set. The default integration labels are `FIXTURE MODE` and `LOCAL ONLY`.
 
-The eventual web deployment and partner adapters are separate processes with the control plane as their only policy authority.
+The Next.js application reaches only the API through an allowlisted same-origin proxy. The Virtuals adapter runs inside the control plane only after the durable execution gate. Base anchoring remains a separate post-approval boundary.

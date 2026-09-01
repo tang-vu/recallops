@@ -28,6 +28,7 @@ from recallops.models import (
     MemoryTier,
     OwnerPolicy,
     PermissionGrant,
+    ProposedAction,
     StoredMemory,
     utc_now,
 )
@@ -327,6 +328,40 @@ class SibylMemoryStore:
             human_exception=exception,
         )
 
+    def write_proposed_action(self, action: ProposedAction) -> list[dict[str, str]]:
+        entity_name = f"action:{action.action_id}"
+        try:
+            entity = self._client.set_entity(
+                "proposed_action",
+                entity_name,
+                action.model_dump(mode="json"),
+                status="evaluated",
+            )
+            event_id = self._client.write_event(
+                evaluated=[f"Action {action.action_id} proposed for provider {action.provider_id}"],
+                extra={
+                    "event_type": "ACTION_PROPOSED",
+                    "action_id": str(action.action_id),
+                    "source_session_id": str(action.session_id),
+                    "task_category": action.task_category,
+                },
+            )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to write proposed action to Sibyl") from exc
+        return [
+            self._write_result(MemoryTier.WARM, "proposed_action", entity_name, entity["id"]),
+            self._write_result(MemoryTier.COLD, "ACTION_PROPOSED", event_id, event_id),
+        ]
+
+    def get_proposed_action(self, action_id: str) -> ProposedAction | None:
+        memory = self._read_optional_entity("proposed_action", f"action:{action_id}")
+        if memory is None:
+            return None
+        try:
+            return ProposedAction.model_validate(memory.body)
+        except Exception as exc:
+            raise MemorySubsystemError("Stored proposed action is corrupt") from exc
+
     def write_decision(self, receipt: DecisionReceipt) -> list[dict[str, str]]:
         entity_name = f"decision:{receipt.receipt_id}"
         body = receipt.model_dump(mode="json")
@@ -359,6 +394,38 @@ class SibylMemoryStore:
             return DecisionReceipt.model_validate(memory.body)
         except Exception as exc:
             raise MemorySubsystemError("Stored decision receipt is corrupt") from exc
+
+    def attach_virtuals_job(self, receipt_id: str, job_id: str) -> list[dict[str, str]]:
+        receipt = self.get_decision(receipt_id)
+        if receipt is None:
+            raise MemorySubsystemError("Cannot attach a Virtuals job to a missing receipt")
+        if receipt.virtuals_job_id not in {None, job_id}:
+            raise MemorySubsystemError(
+                "Decision receipt already references a different Virtuals job"
+            )
+        updated = receipt.model_copy(update={"virtuals_job_id": job_id})
+        entity_name = f"decision:{receipt_id}"
+        try:
+            entity = self._client.set_entity(
+                "decision_receipt",
+                entity_name,
+                updated.model_dump(mode="json"),
+                status="executed",
+            )
+            event_id = self._client.write_event(
+                acted=[f"Decision receipt {receipt_id} linked to ACP job {job_id}"],
+                extra={
+                    "event_type": "DECISION_LINKED_TO_ACP_JOB",
+                    "receipt_id": receipt_id,
+                    "virtuals_job_id": job_id,
+                },
+            )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to link the Virtuals job in Sibyl") from exc
+        return [
+            self._write_result(MemoryTier.WARM, "decision_receipt", entity_name, entity["id"]),
+            self._write_result(MemoryTier.COLD, "DECISION_LINKED_TO_ACP_JOB", event_id, event_id),
+        ]
 
     def list_decisions(self, limit: int = 100) -> list[DecisionReceipt]:
         try:
@@ -429,8 +496,17 @@ class SibylMemoryStore:
             raise MemorySubsystemError("Stored human approval is corrupt") from exc
 
     def write_execution_authorization(
-        self, authorization: ExecutionAuthorization
+        self,
+        authorization: ExecutionAuthorization,
+        event_type: str = "EXECUTION_AUTHORIZED",
     ) -> list[dict[str, str]]:
+        if event_type not in {
+            "EXECUTION_AUTHORIZED",
+            "VIRTUALS_DISPATCH_STARTED",
+            "VIRTUALS_JOB_CREATED",
+            "VIRTUALS_DISPATCH_FAILED",
+        }:
+            raise ValueError("Unsupported execution event type")
         entity_name = f"execution:{authorization.receipt_id}"
         try:
             entity = self._client.set_entity(
@@ -440,9 +516,11 @@ class SibylMemoryStore:
                 status=authorization.status.value.lower(),
             )
             event_id = self._client.write_event(
-                acted=[f"Execution authorized for receipt {authorization.receipt_id}"],
+                acted=[
+                    f"Execution state {authorization.status} for receipt {authorization.receipt_id}"
+                ],
                 extra={
-                    "event_type": "EXECUTION_AUTHORIZED",
+                    "event_type": event_type,
                     "receipt_id": str(authorization.receipt_id),
                     "action_id": str(authorization.action_id),
                     "authorization_id": str(authorization.authorization_id),
@@ -454,7 +532,7 @@ class SibylMemoryStore:
             self._write_result(
                 MemoryTier.WARM, "execution_authorization", entity_name, entity["id"]
             ),
-            self._write_result(MemoryTier.COLD, "EXECUTION_AUTHORIZED", event_id, event_id),
+            self._write_result(MemoryTier.COLD, event_type, event_id, event_id),
         ]
 
     def get_execution_authorization(self, receipt_id: str) -> ExecutionAuthorization | None:
@@ -525,6 +603,14 @@ class SibylMemoryStore:
             return JobRecord.model_validate(memory.body)
         except Exception as exc:
             raise MemorySubsystemError("Stored commerce job is corrupt") from exc
+
+    def list_jobs(self, limit: int = 100) -> list[JobRecord]:
+        try:
+            rows = self._client.list_entities("commerce_job", limit=min(limit, 500))
+            jobs = [JobRecord.model_validate(row["body"]) for row in rows]
+            return sorted(jobs, key=lambda item: item.updated_at, reverse=True)
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to list commerce jobs from Sibyl") from exc
 
     def _read_optional_entity(self, category: str, name: str) -> StoredMemory | None:
         try:

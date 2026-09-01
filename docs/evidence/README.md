@@ -8,8 +8,11 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | --- | --- | --- |
 | Sibyl Memory | Local 0.8.0 four-tier smoke test | Obtained |
 | Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
-| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 31 automated tests pass |
-| Virtuals ACP | Real job ID and verifiable link | Not obtained; fixture work will be labeled |
+| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 39 automated tests pass |
+| Virtuals ACP | Policy-approved fixture dispatch and durable receipt link | Obtained locally; IDs start with `fixture:` and links are empty |
+| Virtuals ACP | Real job ID and verifiable link | Not obtained; no multiplier claim |
 | Base Sepolia | Contract address and transaction hash | Not obtained |
 
-Only real public identifiers will be added. Fixture output will be stored separately and labeled `FIXTURE MODE`.
+Only real public identifiers will be added. Fixture output is labeled `FIXTURE MODE` everywhere it appears.
+
+Latest fresh-process fixture proof: Session 1 PID 61028 and Session 2 PID 3316 used different UUIDs. Session 2 recalled the failure source UUID, denied Agent A, approved Agent B, and stored `fixture:31c50808-45de-4b41-b63d-57d959d945e9`. This identifier is local evidence only and is not a Virtuals partner claim.

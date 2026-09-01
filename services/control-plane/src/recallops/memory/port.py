@@ -15,6 +15,7 @@ from recallops.models import (
     IdempotencyRecord,
     OwnerPolicy,
     PermissionGrant,
+    ProposedAction,
 )
 
 
@@ -54,6 +55,10 @@ class MemoryPort(Protocol):
 
     def write_decision(self, receipt: DecisionReceipt) -> list[dict[str, str]]: ...
 
+    def write_proposed_action(self, action: ProposedAction) -> list[dict[str, str]]: ...
+
+    def get_proposed_action(self, action_id: str) -> ProposedAction | None: ...
+
     def get_decision(self, receipt_id: str) -> DecisionReceipt | None: ...
 
     def list_decisions(self, limit: int = 100) -> list[DecisionReceipt]: ...
@@ -63,7 +68,9 @@ class MemoryPort(Protocol):
     def get_human_approval(self, receipt_id: str) -> HumanApproval | None: ...
 
     def write_execution_authorization(
-        self, authorization: ExecutionAuthorization
+        self,
+        authorization: ExecutionAuthorization,
+        event_type: str = "EXECUTION_AUTHORIZED",
     ) -> list[dict[str, str]]: ...
 
     def get_execution_authorization(self, receipt_id: str) -> ExecutionAuthorization | None: ...

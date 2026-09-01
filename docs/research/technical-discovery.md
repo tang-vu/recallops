@@ -51,6 +51,8 @@ Observed package versions on 2026-09-01:
 
 Choice: use the maintained ACP CLI as the first live adapter because every command supports `--json`, event streams are NDJSON, `IS_TESTNET=true` separates testnet state, and its P256 private signer stays in the OS keychain after browser approval. Use `acp configure start --json` followed by `acp configure complete` for non-blocking authentication. Live job operations still require agent registration, signer approval, and funding, so fixture tests will be completed before requesting the smallest human action.
 
+Security follow-up: an isolated install of CLI 1.0.34 on the access date still pulled deprecated `@virtuals-protocol/acp-node` 0.3.0 beta for legacy paths and produced 9 high-severity npm audit findings. `npm audit fix` did not clear them. RecallOps invokes only the maintained CLI's v2 default job paths but does not vendor the CLI into its default runtime. Live use is an operator-reviewed prerequisite documented in `docs/virtuals-live-setup.md`.
+
 The v2 SDK remains a supported alternative if embedding provides a material lifecycle advantage. It currently requires wallet and signer configuration and uses `createJobByOfferingName` for buyer work. Deprecated v1 and archived OpenClaw packages are excluded.
 
 ## Base

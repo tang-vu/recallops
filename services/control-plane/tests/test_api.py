@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import subprocess
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from recallops.api.app import create_app
 from recallops.demo.common import DEMO_TENANT, action, budget, permission_grant, policy
+from recallops.integrations.virtuals import VirtualsLiveAdapter
 from recallops.memory.sibyl_store import SibylMemoryStore
 from recallops.models import FailureFingerprint, HumanApproval, JobRecord
 
@@ -120,13 +124,74 @@ def test_evaluation_and_execution_are_durably_idempotent(tmp_path: Path) -> None
         headers={"Idempotency-Key": "different-execution-key"},
         json=execute_body,
     )
+    persisted_receipt = client.get(f"/v1/decisions/{receipt_id}?tenant_id={DEMO_TENANT}")
+    persisted_jobs = client.get(f"/v1/jobs?tenant_id={DEMO_TENANT}")
 
     assert first_execution.status_code == 200
-    assert first_execution.json()["authorization"]["status"] == "AUTHORIZED"
-    assert first_execution.json()["executor_status"] == "NOT_DISPATCHED"
+    assert first_execution.json()["authorization"]["status"] == "SUCCEEDED"
+    assert first_execution.json()["executor_status"] == "FIXTURE_JOB_CREATED"
+    assert first_execution.json()["job"]["job_id"].startswith("fixture:")
     assert execution_replay.status_code == 200
     assert execution_replay.json()["idempotent_replay"] is True
+    assert execution_replay.json()["executor_status"] == "ALREADY_DISPATCHED"
     assert conflict.status_code == 409
+    assert persisted_receipt.json()["virtuals_job_id"].startswith("fixture:")
+    assert persisted_jobs.json()[0]["job_id"] == persisted_receipt.json()["virtuals_job_id"]
+
+
+def test_fixture_offering_price_cannot_exceed_approved_ceiling(tmp_path: Path) -> None:
+    client, _ = client_for(tmp_path)
+    seed_policy(client)
+    proposed = action("agent-b", uuid4()).model_copy(update={"requested_amount": Decimal("1.00")})
+    evaluation = client.post(
+        "/v1/actions/evaluate",
+        headers={"Idempotency-Key": "price-drift-evaluate-0001"},
+        json=proposed.model_dump(mode="json"),
+    )
+    execution = client.post(
+        f"/v1/actions/{proposed.action_id}/execute?tenant_id={DEMO_TENANT}",
+        headers={"Idempotency-Key": "price-drift-execute-0001"},
+        json={"receipt_id": evaluation.json()["receipt"]["receipt_id"]},
+    )
+
+    assert evaluation.json()["receipt"]["decision"] == "APPROVE"
+    assert execution.status_code == 409
+    assert "ceiling" in execution.json()["detail"]
+    assert client.get(f"/v1/jobs?tenant_id={DEMO_TENANT}").json() == []
+
+
+def test_live_virtuals_never_dispatches_until_explicitly_enabled(tmp_path: Path) -> None:
+    def forbidden_runner(
+        _arguments: list[str], _timeout: int, _environment: Mapping[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        raise AssertionError("The ACP CLI must not be called")
+
+    database = (tmp_path / "live-disabled.db").resolve()
+    client = TestClient(
+        create_app(
+            memory_db=database,
+            admin_token=ADMIN_TOKEN,
+            virtuals_adapter=VirtualsLiveAdapter(runner=forbidden_runner),
+            enable_live_virtuals=False,
+        )
+    )
+    seed_policy(client)
+    proposed = action("agent-b", uuid4())
+    evaluation = client.post(
+        "/v1/actions/evaluate",
+        headers={"Idempotency-Key": "live-disabled-evaluate-0001"},
+        json=proposed.model_dump(mode="json"),
+    )
+    execution = client.post(
+        f"/v1/actions/{proposed.action_id}/execute?tenant_id={DEMO_TENANT}",
+        headers={"Idempotency-Key": "live-disabled-execute-0001"},
+        json={"receipt_id": evaluation.json()["receipt"]["receipt_id"]},
+    )
+
+    assert execution.status_code == 200
+    assert execution.json()["authorization"]["status"] == "AUTHORIZED"
+    assert execution.json()["executor_status"] == "NOT_DISPATCHED"
+    assert execution.json()["job"] is None
 
 
 def test_same_idempotency_key_rejects_different_action(tmp_path: Path) -> None:

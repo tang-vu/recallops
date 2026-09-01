@@ -32,3 +32,7 @@ def test_fresh_process_recall_changes_economic_decision(tmp_path: Path) -> None:
     assert second["retrieved_memory_record"]
     assert second["agent_b_decision"]["decision"] == "APPROVE"
     assert second["selected_provider"] == "Agent B"
+    assert second["execution"]["status"] == "FIXTURE_JOB_CREATED"
+    assert second["execution"]["mode"] == "FIXTURE MODE"
+    assert second["execution"]["virtuals_job_id"].startswith("fixture:")
+    assert second["execution"]["base_transaction_hash"] is None

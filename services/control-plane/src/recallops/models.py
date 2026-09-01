@@ -231,7 +231,13 @@ class JobRecord(StrictModel):
     provider_id: str = Field(min_length=1, max_length=128)
     task_category: str = Field(min_length=1, max_length=128)
     task_fingerprint: str = Field(min_length=1, max_length=256)
+    chain_id: int = 84532
+    offering_name: str | None = Field(default=None, max_length=256)
     status: JobStatus = JobStatus.CREATED
+    deliverable: str | None = Field(default=None, max_length=4_096)
+    payment_metadata: dict[str, Any] = Field(default_factory=dict)
+    verifiable_links: tuple[str, ...] = ()
+    adapter_response_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     verification_outcome: VerificationOutcome | None = None
     verification_reason: str | None = Field(default=None, max_length=512)
     verifier_id: str | None = Field(default=None, max_length=128)

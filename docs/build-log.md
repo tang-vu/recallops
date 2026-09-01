@@ -43,4 +43,15 @@ Commit: `a2e6306` (`feat(policy): enforce memory-gated commerce actions`)
 - Ran strict type checking, ESLint, Vitest, a Next.js production build, and Playwright on desktop and mobile.
 - Exercised the real Web -> FastAPI -> Sibyl route: the recalled Session 1 failure denied Agent A with exact evidence.
 
+Commit: `9c4f101` (`feat(web): build decision evidence dashboard`)
+
+### 07:55 - Guarded Virtuals ACP boundary
+
+- Added explicit `VirtualsPort`, fixture, and maintained ACP CLI live adapters.
+- Enforced Base Sepolia, JSON-only subprocess arguments, output limits, environment allowlisting, credential redaction, current offering price checks, and idempotent dispatch.
+- Persisted proposed actions, ACP jobs, receipt-to-job links, and pre/post-dispatch events through Sibyl.
+- Kept live dispatch behind a second explicit configuration flag and added the exact human-controlled setup guide.
+- Found 9 unresolved high-severity npm audit findings in the official CLI's isolated dependency tree, including a deprecated legacy v1 transitive package. The CLI is therefore not vendored into the default runtime.
+- Ran 39 backend tests plus Ruff and mypy; exercised fixture dispatch without wallet or network activity.
+
 Commit: pending at the time of this entry.

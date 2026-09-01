@@ -36,7 +36,8 @@ class CommerceGuard:
 
         receipt = self._engine.evaluate(action, context)
         try:
-            writes = self._memory.write_decision(receipt)
+            writes = self._memory.write_proposed_action(action)
+            writes.extend(self._memory.write_decision(receipt))
         except MemorySubsystemError:
             return (
                 self._engine.fail_closed(

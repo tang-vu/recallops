@@ -25,6 +25,7 @@ The first vertical slice is built before the dashboard:
 - Session 1 writes a rejected verification and provider failure fingerprint to Sibyl, then exits.
 - Session 2 starts as a separate operating-system process against the same durable Sibyl database.
 - Recall of the matching failure changes Agent A from the cheapest candidate to a denied candidate.
+- Agent B is approved and the fixture path persists a clearly labeled `fixture:` job plus its receipt link; live mode remains separately gated.
 - Disabling mandatory memory changes the safe result to `ESCALATE`; the explicit benchmark-only stateless baseline demonstrates the unsafe repeat separately.
 
 Production reads and writes are easy to locate in:
@@ -137,7 +138,17 @@ The root quality gate runs Ruff formatting and lint, mypy strict mode, real temp
 
 ## Partner integration status
 
-Virtuals ACP and Base Sepolia are not yet claimed. Current demo execution remains `NOT_EXECUTED` after Agent B approval and clearly says why. Real partner identifiers will appear only after verifiable actions exist.
+### Virtuals integration
+
+RecallOps now ships a policy-gated `VirtualsPort`, a visibly labeled fixture adapter, and a live adapter for the maintained ACP CLI JSON interface. Execution rechecks offering price and currency against the approved action, writes `VIRTUALS_DISPATCH_STARTED`, creates at most one job, persists the job in Sibyl, and links it back to the decision receipt. Fixture IDs always start with `fixture:` and never carry fake proof links.
+
+Live dispatch is restricted to Base Sepolia and disabled by default even when `LIVE VIRTUALS` mode is selected. The current official CLI dependency tree has unresolved audit findings, so it is an operator-reviewed external prerequisite rather than a default application dependency. See [the live setup and audit note](docs/virtuals-live-setup.md).
+
+### Base integration
+
+Base Sepolia is not yet claimed. Contract implementation and local Foundry proof are the next milestone; no testnet deployment or transaction has occurred.
+
+No real Virtuals ACP job or Base transaction has been recorded, so neither partner multiplier is claimed. Real identifiers will appear only after verifiable actions exist.
 
 ## Security and privacy
 

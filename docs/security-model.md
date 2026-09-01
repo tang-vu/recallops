@@ -18,7 +18,7 @@ RecallOps assumes proposed tasks, provider metadata, callbacks, and paid endpoin
 | Browser or agent to FastAPI | Untrusted | Strict Pydantic schemas, 1 MiB request cap, no unknown fields |
 | Administrative mutation | Privileged | Constant-time comparison of `X-RecallOps-Admin-Token`; disabled when unconfigured |
 | Control plane to Sibyl | Mandatory local dependency | Tenant-specific client, explicit lifecycle, fail-closed errors |
-| Control plane to Virtuals | External and economic | Dispatch requires durable action-bound authorization; secrets stay in OS keychain |
+| Control plane to Virtuals | External and economic | Dispatch requires durable action-bound authorization, Base Sepolia, price recheck, explicit live enablement, environment allowlist, and sanitized JSON CLI output |
 | Control plane to Base | Public and irreversible | Sepolia allowlist, digest-only payload, approval-before-anchor ordering |
 
 ## Threats and implemented controls
@@ -47,6 +47,12 @@ Natural-language rationale is inert data and never interpreted as policy. The de
 
 Request logs contain method, path, status, and correlation ID, not bodies or headers. The recursive redactor covers tokens, authorization fields, seed phrases, private keys, OTPs, cards, CVVs, and email content. `.env`, database files, keys, wallet material, and private evidence are ignored by Git.
 
+The ACP child process receives only an allowlist of operating-system environment variables plus `IS_TESTNET=true`; unrelated API tokens are not inherited. CLI errors are capped, recursively sanitized, and have URL query fragments removed before exposure.
+
+### External dispatch uncertainty
+
+RecallOps writes `VIRTUALS_DISPATCH_STARTED` before invoking ACP. A CLI error or timeout changes the authorization to `FAILED`; it is never automatically replayed because the remote job may have been created even when the local response was lost. A new memory decision and human review are required.
+
 ### Unsafe deletion
 
 The reset command resolves its target and accepts only the exact project-owned `.data/demo/recallops-demo.db` file. It requires the literal confirmation `RESET_RECALLOPS_DEMO`. Normal Sibyl databases are never reset by that command.
@@ -60,5 +66,6 @@ The planned Base registry receives only non-sensitive digests and enum metadata.
 - The local admin token is a coarse-grained control, not a multi-user identity system.
 - The Sibyl SQLite file relies on operating-system and volume permissions; application-level encryption at rest is not added.
 - Rate limiting is expected at the deployment edge and is not implemented in-process yet.
-- Virtuals and Base live adapters are not configured, so no partner credential path has been exercised.
+- Virtuals live credentials and Base anchoring are not configured, so no partner credential path has been exercised.
+- ACP CLI 1.0.34 currently includes a deprecated legacy v1 transitive package and unresolved npm advisories. It is not vendored into the default runtime; live setup is opt-in and documented in `docs/virtuals-live-setup.md`.
 - Dependency audit covers known published advisories, not undisclosed vulnerabilities.

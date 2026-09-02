@@ -53,6 +53,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Installed the current `sibyl-memory-cli[mcp]==0.4.0` in an isolated Python 3.12 tool environment; it resolved the project's selected `sibyl-memory-client==0.8.0` and exposed the documented account activation, health, status, and Codex setup commands.
 - Backed up the existing Codex configuration, added the official `sibyl_memory` MCP entry with `sibyl setup`, and verified that the MCP server starts cleanly. The active Codex process still requires a restart before the new connector is available in-session.
 - Completed the Sibyl browser bind, persisted non-empty local credentials after a Windows compatibility guard, and passed `sibyl health`. Both activation and server status report `FREE`, so the advertised hackathon Pro entitlement remains unverified but does not block the 0.27 MB local memory store.
+- Installed `@lucianfialho/build-in-public-mcp==0.5.0`, backed up the Codex configuration, and registered the local STDIO server with environment-variable forwarding and write-action approval. No X credentials were stored or printed.
+- Prepared a truthful 268-character first X post that tags Sibyl, links the public repository, and makes no unsupported partner or PMF claim. The selected MCP is text-only, so no generated image or metadata is involved.
 - Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
 
 ## Tests and checks actually run
@@ -131,6 +133,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - ACP authentication has not been completed; the real CLI returns `NO_ACTIVE_AGENT` and no job exists.
 - Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
 - The account is healthy and bound, but the server reports `FREE`, not the advertised hackathon Pro tier. No paid upgrade will be attempted; the current project database is below the free cap.
+- The Build in Public MCP cannot authenticate or publish until the builder creates or selects an X developer app with read/write access and supplies its API key and secret locally. If X requires paid API credit, the flow must stop pending explicit cost approval.
 - Rate limiting is not implemented in-process; current deployment binds to loopback and expects an edge control for public hosting.
 
 ## Live evidence obtained
@@ -155,3 +158,4 @@ None for completed local implementation. The remaining externally verifiable ste
 - Record the demo and submit only after explicit human approval in Issues 3 and 4.
 - Reload the private build page to see whether the Sibyl setup milestone has synchronized; if it still shows incomplete or Pro is required, the builder must ask Sibyl support to reconcile the hackathon entitlement.
 - Restart Codex after this work period to load the verified MCP connector.
+- Restart Codex after the X credentials are available so the new Build in Public MCP can run its PIN-based OAuth flow and publish the approved first post.

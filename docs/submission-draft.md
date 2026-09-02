@@ -32,6 +32,20 @@ Built RecallOps for the Sibyl Labs Hackathon 2026: a deterministic safety contro
 
 The shipped build includes a FastAPI policy engine, Next.js evidence console, guarded Virtuals ACP adapter, Base receipt registry, 12-scenario benchmark, cross-process tests, deletion proof, and security gates. No users, PMF, live partner jobs, or public testnet transactions are claimed without evidence.
 
+## First X post
+
+268 characters. Prepared for the Build in Public MCP `tweet` tool.
+
+```text
+Building RecallOps for the @sibylcap Hackathon.
+
+A fresh agent can forget a failed provider, revoked permission, or spent budget. RecallOps puts Sibyl Memory before every economic action: APPROVE, DENY, or ESCALATE.
+
+https://github.com/tang-vu/recallops #buildinpublic
+```
+
+The selected MCP tool supports text-only posts, so this first post does not use generated media. No image or AI metadata is involved.
+
 ## Demo launch post
 
 RecallOps gives autonomous agent commerce a durable safety memory. It remembers budgets, revocations, permissions, verifier failures, and task-scoped counterparty outcomes across fresh processes, then returns an inspectable `APPROVE`, `DENY`, or `ESCALATE` before money can move.

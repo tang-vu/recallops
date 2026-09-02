@@ -45,4 +45,3 @@ Do not select `semantic search`, `temporal / time-travel`, `summarization`, `ref
 - Fresh-process test: `services/control-plane/tests/test_fresh_process.py`
 - Deletion proof: `scripts/deletion_test.py`
 - Benchmark report: `benchmark/results/latest.md`
-

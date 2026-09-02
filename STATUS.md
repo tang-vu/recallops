@@ -52,6 +52,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Added a machine-readable partner preflight that performs only public Base Sepolia reads and ACP provider discovery, with explicit no-write and no-signature assertions.
 - Installed the current `sibyl-memory-cli[mcp]==0.4.0` in an isolated Python 3.12 tool environment; it resolved the project's selected `sibyl-memory-client==0.8.0` and exposed the documented account activation, health, status, and Codex setup commands.
 - Backed up the existing Codex configuration, added the official `sibyl_memory` MCP entry with `sibyl setup`, and verified that the MCP server starts cleanly. The active Codex process still requires a restart before the new connector is available in-session.
+- Completed the Sibyl browser bind, persisted non-empty local credentials after a Windows compatibility guard, and passed `sibyl health`. Both activation and server status report `FREE`, so the advertised hackathon Pro entitlement remains unverified but does not block the 0.27 MB local memory store.
 - Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
 
 ## Tests and checks actually run
@@ -118,7 +119,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Base Sepolia Foundry simulation: no broadcast or signature; 555,569 estimated deployment gas and 0.000006111259 testnet ETH at the observed maximum fee
 - Partner-readiness release gate on 2026-09-02: Ruff format and lint passed on 42 files, mypy strict passed on 42 files, and all 58 pytest tests passed; the preceding full coverage run measured 83% statement coverage
 - Repeated web and contract gates: strict TypeScript, ESLint, 3 Vitest tests, production build, 2 Playwright projects, 13 Foundry tests with 1,024 fuzz cases, 3 viem tests, and all three dependency audits passed
-- Rebuilt the production control-plane image with the preflight module; Docker Compose reached healthy with Sibyl schema 4 and exposed 25 versioned OpenAPI paths, then stopped cleanly
+- Rebuilt the production control-plane image with the preflight module; Docker Compose reached healthy with Sibyl schema 4 and exposed 25 versioned OpenAPI paths, then stopped cleanly.
+- GitHub Actions run 33604288759 passed the Python control-plane, web/Playwright, and Solidity/viem jobs for submission-copy commit `ebbb563`.
 
 ## Known failures
 
@@ -127,7 +129,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Live Virtuals dispatch is intentionally disabled; live mode reports `NOT_DISPATCHED` until the explicit enable flag is set.
 - ACP CLI 1.0.34 has unresolved upstream audit findings and a deprecated legacy v1 transitive dependency, so it is not vendored in the default runtime.
 - ACP authentication has not been completed; the real CLI returns `NO_ACTIVE_AGENT` and no job exists.
-- Sibyl account activation requires the builder to finish the email-code or wallet step in the browser; account tier status is not claimed until `sibyl status` confirms it.
+- Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
+- The account is healthy and bound, but the server reports `FREE`, not the advertised hackathon Pro tier. No paid upgrade will be attempted; the current project database is below the free cap.
 - Rate limiting is not implemented in-process; current deployment binds to loopback and expects an edge control for public hosting.
 
 ## Live evidence obtained
@@ -150,4 +153,5 @@ None for completed local implementation. The remaining externally verifiable ste
 
 - Record only real partner evidence after the exact human approvals in Issues 1 and 2.
 - Record the demo and submit only after explicit human approval in Issues 3 and 4.
-- Complete the already-open Sibyl browser activation, verify the account tier, and restart Codex after this work period to load the verified MCP connector.
+- Reload the private build page to see whether the Sibyl setup milestone has synchronized; if it still shows incomplete or Pro is required, the builder must ask Sibyl support to reconcile the hackathon entitlement.
+- Restart Codex after this work period to load the verified MCP connector.

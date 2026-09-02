@@ -1,6 +1,6 @@
 # Technical Discovery
 
-Access date: 2026-09-01 UTC
+Initial access date: 2026-09-01 UTC. Package source and public network checks refreshed 2026-09-02 UTC.
 
 This note records concise implementation findings from current primary sources. It intentionally does not reproduce large documentation excerpts.
 
@@ -53,6 +53,8 @@ Choice: use the maintained ACP CLI as the first live adapter because every comma
 
 Security follow-up: an isolated install of CLI 1.0.34 on the access date still pulled deprecated `@virtuals-protocol/acp-node` 0.3.0 beta for legacy paths and produced 9 high-severity npm audit findings. `npm audit fix` did not clear them. RecallOps invokes only the maintained CLI's v2 default job paths but does not vendor the CLI into its default runtime. Live use is an operator-reviewed prerequisite documented in `docs/virtuals-live-setup.md`.
 
+The installed 1.0.34 CLI source was re-inspected on 2026-09-02 rather than relying on older examples. Browse results use `data`, `chains[].chainId`, and USDC `priceValue`; `job history --json` returns chronological `entries` containing `budget.set`, `job.funded`, `job.submitted`, `job.completed`, and `job.rejected` events. RecallOps parses those exact current shapes. A real isolated CLI invocation reached the authentication boundary and returned `NO_ACTIVE_AGENT`; no live job or partner evidence was created.
+
 The v2 SDK remains a supported alternative if embedding provides a material lifecycle advantage. It currently requires wallet and signer configuration and uses `createJobByOfferingName` for buyer work. Deprecated v1 and archived OpenClaw packages are excluded.
 
 ## Base
@@ -68,6 +70,8 @@ Sources:
 Choice: use Foundry 1.8.1, Solidity 0.8.36, and viem 2.56.1. The compiler release includes two security fixes, so the contract pins the current stable compiler rather than an older example version. The Base reference confirms Sepolia chain ID `84532` and the official `https://sepolia-explorer.base.org` explorer. The registry anchors only digests after approval and verification; Foundry tests and local Anvil deployment precede any testnet action.
 
 The official Windows Foundry 1.8.1 archive was checksum-verified before installation. Its observed SHA-256 was `02d98fc2c573793960ee06b7f642487d483fe30572f7e248804c207334a418d8`. Local contract tests, fuzzing, lint, gas snapshot, deployment, and a viem transaction all passed. Base Sepolia remains unconfigured and unclaimed.
+
+On 2026-09-02 the official public Base Sepolia RPC returned chain ID 84532, block 46,276,519, and gas price 6,000,000 wei during the read-only preflight. A separate Foundry deployment simulation with a dummy submitter estimated 555,569 gas and 0.000006111259 testnet ETH at its observed maximum fee. Neither check requested a signature or broadcast a transaction.
 
 x402 is a stretch integration, not the critical path. The current Base MCP flow supports Base and Base Sepolia but requires a separate approval link and wallet signature for a payment. No paid or signed call will be attempted without explicit approval.
 

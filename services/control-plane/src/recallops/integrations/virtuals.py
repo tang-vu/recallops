@@ -48,6 +48,7 @@ _TOKEN_ASSIGNMENT = re.compile(
 _URL = re.compile(r"https?://[^\s\"'<>]+")
 _EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 _OTP = re.compile(r"(?i)\b(otp|one[- ]time code)\s*[:=]?\s*\d{4,10}\b")
+_MONEY_KEY = re.compile(r"(?i)(amount|budget|price(?:value)?)$")
 
 
 class VirtualsAdapterError(RuntimeError):
@@ -313,6 +314,8 @@ class VirtualsLiveAdapter:
         self, query: str, *, chain_id: int, top_k: int = 5
     ) -> tuple[VirtualsProvider, ...]:
         self._require_testnet(chain_id)
+        if not query.strip() or len(query) > 512 or "\x00" in query:
+            raise VirtualsAdapterError("Virtuals discovery query must contain 1 to 512 characters")
         if not 1 <= top_k <= 20:
             raise VirtualsAdapterError("Virtuals discovery top_k must be between 1 and 20")
         payload = self._run(["browse", query, "--chain-ids", str(chain_id), "--top-k", str(top_k)])
@@ -417,12 +420,13 @@ class VirtualsLiveAdapter:
             wallet = cls._string_value(
                 item, "walletAddress", "wallet_address", "providerAddress", "address"
             )
-            chain_values = item.get("chainIds", item.get("chain_ids", []))
+            chain_values = item.get("chains", item.get("chainIds", item.get("chain_ids", [])))
             chain_ids = (
-                tuple(int(value) for value in chain_values if str(value).isdigit())
+                tuple(cls._chain_id(value) for value in chain_values)
                 if isinstance(chain_values, list)
                 else ()
             )
+            chain_ids = tuple(value for value in chain_ids if value is not None)
             offerings_value = item.get("offerings", [])
             offerings = (
                 tuple(
@@ -433,15 +437,18 @@ class VirtualsLiveAdapter:
                 if isinstance(offerings_value, list)
                 else ()
             )
-            providers.append(
-                VirtualsProvider(
-                    provider_id=provider_id,
-                    name=name,
-                    wallet_address=wallet,
-                    chain_ids=chain_ids,
-                    offerings=offerings,
+            try:
+                providers.append(
+                    VirtualsProvider(
+                        provider_id=provider_id,
+                        name=name,
+                        wallet_address=wallet,
+                        chain_ids=chain_ids,
+                        offerings=offerings,
+                    )
                 )
-            )
+            except ValueError:
+                continue
         return providers
 
     @classmethod
@@ -457,25 +464,47 @@ class VirtualsLiveAdapter:
         requirements = payload.get("requirements", payload.get("requirementSchema"))
         if not isinstance(requirements, (dict, str)):
             requirements = None
-        return VirtualsOffering(
-            name=name,
-            description=cls._string_value(payload, "description"),
-            price=price,
-            currency=cls._string_value(payload, "currency", "priceCurrency"),
-            requirements_schema=requirements,
-        )
+        try:
+            return VirtualsOffering(
+                name=name,
+                description=cls._string_value(payload, "description"),
+                price=price,
+                currency=(
+                    cls._string_value(payload, "currency", "priceCurrency")
+                    or ("USDC" if raw_price is not None else None)
+                ),
+                requirements_schema=requirements,
+            )
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _chain_id(value: Any) -> int | None:
+        candidate = value.get("chainId") if isinstance(value, dict) else value
+        if candidate is None:
+            return None
+        try:
+            return int(candidate)
+        except (TypeError, ValueError):
+            return None
 
     @classmethod
     def _snapshot(cls, payload: Any, *, job_id: str, chain_id: int) -> VirtualsJobSnapshot:
         mapping = payload if isinstance(payload, dict) else {}
         status = cls._string_value(mapping, "status", "jobStatus") or "open"
-        deliverable = cls._string_value(mapping, "deliverable", "result")
-        verification = cls._string_value(
-            mapping, "verificationResult", "verification_result", "evaluation"
+        deliverable = cls._bounded_text(cls._string_value(mapping, "deliverable", "result"), 4_096)
+        verification = cls._bounded_text(
+            cls._string_value(mapping, "verificationResult", "verification_result", "evaluation"),
+            512,
         )
         payment = mapping.get("payment", mapping.get("escrow", {}))
         if not isinstance(payment, dict):
             payment = {"status": str(payment)}
+        payment = cls._normalize_payment_metadata(payment)
+        history = cls._history_details(mapping)
+        deliverable = deliverable or history["deliverable"]
+        verification = verification or history["verification_result"]
+        payment = {**payment, **history["payment_metadata"]}
         links = tuple(cls._collect_links(mapping))
         return VirtualsJobSnapshot(
             job_id=job_id,
@@ -488,6 +517,78 @@ class VirtualsLiveAdapter:
             links=links,
             response_digest=_digest(payload),
         )
+
+    @classmethod
+    def _history_details(cls, mapping: Mapping[str, Any]) -> dict[str, Any]:
+        entries = mapping.get("entries")
+        if not isinstance(entries, list):
+            return {"deliverable": None, "verification_result": None, "payment_metadata": {}}
+        deliverable: str | None = None
+        verification: str | None = None
+        payment: dict[str, Any] = {}
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("kind") == "message" and entry.get("contentType") == "deliverable":
+                deliverable = cls._bounded_text(cls._string_value(entry, "content"), 4_096)
+                continue
+            event = entry.get("event")
+            if not isinstance(event, dict):
+                continue
+            event_type = event.get("type")
+            if event_type == "budget.set":
+                payment["budget"] = cls._decimal_text(event.get("amount"))
+                if isinstance(event.get("fundRequest"), dict):
+                    payment["fund_request"] = cls._normalize_payment_metadata(event["fundRequest"])
+            elif event_type == "job.funded":
+                payment["funded"] = True
+                payment["funded_amount"] = cls._decimal_text(event.get("amount"))
+            elif event_type == "job.submitted":
+                deliverable = cls._bounded_text(cls._string_value(event, "deliverable"), 4_096)
+                if isinstance(event.get("fundTransfer"), dict):
+                    payment["fund_transfer"] = cls._normalize_payment_metadata(
+                        event["fundTransfer"]
+                    )
+            elif event_type in {"job.completed", "job.rejected"}:
+                result = "PASSED" if event_type == "job.completed" else "FAILED"
+                reason = cls._string_value(event, "reason")
+                verification = cls._bounded_text(
+                    f"{result}: {reason}" if reason else result,
+                    512,
+                )
+        return {
+            "deliverable": deliverable,
+            "verification_result": verification,
+            "payment_metadata": payment,
+        }
+
+    @staticmethod
+    def _bounded_text(value: str | None, maximum: int) -> str | None:
+        return value[:maximum] if value is not None else None
+
+    @classmethod
+    def _normalize_payment_metadata(cls, value: Any, key: str = "") -> Any:
+        if isinstance(value, dict):
+            return {
+                str(item_key): cls._normalize_payment_metadata(item, str(item_key))
+                for item_key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [cls._normalize_payment_metadata(item, key) for item in value]
+        if _MONEY_KEY.search(key):
+            return cls._decimal_text(value)
+        return value
+
+    @staticmethod
+    def _decimal_text(value: Any) -> str:
+        raw = str(value)
+        if len(raw) > 128:
+            return "[INVALID DECIMAL]"
+        try:
+            amount = Decimal(raw)
+        except InvalidOperation:
+            return "[INVALID DECIMAL]"
+        return str(amount) if amount.is_finite() else "[INVALID DECIMAL]"
 
     @staticmethod
     def _string_value(mapping: Mapping[str, Any], *keys: str) -> str | None:
@@ -509,6 +610,6 @@ class VirtualsLiveAdapter:
         elif isinstance(value, list):
             for item in value:
                 links.extend(VirtualsLiveAdapter._collect_links(item))
-        elif isinstance(value, str) and value.startswith(("https://", "http://")):
-            links.append(_sanitize_url(value))
+        elif isinstance(value, str):
+            links.extend(_sanitize_url(match.group(0)) for match in _URL.finditer(value))
         return list(dict.fromkeys(links))[:10]

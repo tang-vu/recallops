@@ -166,6 +166,8 @@ RecallOps now ships a policy-gated `VirtualsPort`, a visibly labeled fixture ada
 
 Live dispatch is restricted to Base Sepolia and disabled by default even when `LIVE VIRTUALS` mode is selected. The current official CLI dependency tree has unresolved audit findings, so it is an operator-reviewed external prerequisite rather than a default application dependency. See [the live setup and audit note](docs/virtuals-live-setup.md).
 
+Run `make partner-preflight` with `RECALLOPS_ACP_EXECUTABLE` set to the reviewed CLI path to check the official Base Sepolia RPC and perform read-only ACP provider discovery. The JSON report explicitly states that it performed no writes and requested no signatures.
+
 ### Base integration
 
 `RecallOpsReceiptRegistry.sol` is implemented and locally proven. It accepts only non-sensitive digests, permits only Anvil `31337` or Base Sepolia `84532`, validates the chain at deployment and call time, restricts writes to one immutable submitter, treats an exact retry as a no-op, and rejects conflicting receipt reuse. The FastAPI anchor endpoint requires an `APPROVE` receipt, successful action-bound execution, a durable ACP job, and `VERIFIED_PASSED` before it invokes the typed viem client. The confirmed transaction is then written back to Sibyl.

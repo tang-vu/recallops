@@ -8,10 +8,12 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | --- | --- | --- |
 | Sibyl Memory | Local 0.8.0 five-tier integration proof | Obtained; archive tests use the real SQLite `archived_entities` table |
 | Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
-| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 52 automated tests pass |
+| Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 58 automated tests pass |
 | Virtuals ACP | Policy-approved fixture dispatch and durable receipt link | Obtained locally; IDs start with `fixture:` and links are empty |
+| Virtuals ACP | Read-only current CLI preflight | Obtained; stopped at `NO_ACTIVE_AGENT`, with no job or payment |
 | Virtuals ACP | Real job ID and verifiable link | Not obtained; no multiplier claim |
 | Base Anvil | Contract deployment, viem anchor, receipt verification, and idempotent replay | Obtained locally; see `base-local.md` |
+| Base Sepolia | Official RPC read and no-broadcast deployment simulation | Obtained; no signature requested and not partner transaction evidence |
 | Base Sepolia | Public contract address and transaction hash | Not obtained; no multiplier claim |
 | Benchmark | Twelve scenarios in production Sibyl and stateless comparison modes | Obtained; run `1627c118-32a7-5bc2-8c14-fdfe62db1849`, seed `20260901` |
 | Deletion test | Disabled Sibyl stops production; stateless comparison repeats unsafe rehire | Obtained; `deletion-test.json` reports `passed: true` |

@@ -89,3 +89,13 @@ All Python, web, browser, Solidity, viem, and dependency gates then passed in [G
 - Verified that retirement removes the active profile while retaining the failure fingerprint that still protects future decisions.
 
 Commit: recorded in Git history as `feat(memory): archive superseded lifecycle records`.
+
+## 2026-09-02
+
+### 03:55 - Partner integration preflight
+
+- Re-inspected the installed ACP CLI 1.0.34 and maintained v2 source to verify current browse, offering, and history JSON shapes.
+- Updated the live adapter to parse chain objects, USDC pricing, deliverables, funding metadata, and verifier outcomes from current v2 history entries.
+- Exercised the real isolated CLI through the adapter. It reached the expected `NO_ACTIVE_AGENT` boundary and emitted no job, payment, or partner evidence.
+- Added a read-only machine-readable preflight. It observed Base Sepolia chain ID 84532, block 46,276,519, and gas price 6,000,000 wei while asserting zero writes and zero signature requests.
+- Simulated the Base Sepolia deployment with a dummy submitter and no broadcast. Foundry estimated 555,569 gas and 0.000006111259 testnet ETH at the observed maximum fee.

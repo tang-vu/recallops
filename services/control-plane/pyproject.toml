@@ -32,6 +32,7 @@ recallops-demo-session-2 = "recallops.demo.session2:main"
 recallops-demo-reset = "recallops.demo.reset:main"
 recallops-benchmark = "recallops.benchmark.runner:main"
 recallops-deletion-test = "recallops.benchmark.deletion:main"
+recallops-partner-preflight = "recallops.integrations.preflight:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/recallops"]

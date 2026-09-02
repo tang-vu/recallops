@@ -90,17 +90,16 @@ def test_live_discovery_captures_offering_metadata() -> None:
         arguments: list[str], _timeout_seconds: int, _environment: Mapping[str, str]
     ) -> subprocess.CompletedProcess[str]:
         payload: dict[str, Any] = {
-            "agents": [
+            "data": [
                 {
                     "walletAddress": PROVIDER_ADDRESS,
                     "name": "Audit Agent",
-                    "chainIds": [BASE_SEPOLIA_CHAIN_ID],
+                    "chains": [{"id": 1, "chainId": BASE_SEPOLIA_CHAIN_ID}],
                     "offerings": [
                         {
                             "name": "Dependency Audit",
                             "description": "Checks dependencies",
                             "priceValue": "1.25",
-                            "currency": "USDC",
                             "requirements": {"type": "object"},
                         }
                     ],
@@ -116,8 +115,112 @@ def test_live_discovery_captures_offering_metadata() -> None:
     )
 
     assert providers[0].wallet_address == PROVIDER_ADDRESS
+    assert providers[0].chain_ids == (BASE_SEPOLIA_CHAIN_ID,)
     assert offering.price == Decimal("1.25")
     assert offering.currency == "USDC"
+
+
+def test_live_discovery_skips_malformed_external_metadata() -> None:
+    def runner(
+        arguments: list[str], _timeout_seconds: int, _environment: Mapping[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        payload = {
+            "data": [
+                {"walletAddress": "x" * 300, "name": "oversized"},
+                {
+                    "walletAddress": PROVIDER_ADDRESS,
+                    "name": "Audit Agent",
+                    "chains": [{"chainId": BASE_SEPOLIA_CHAIN_ID}],
+                    "offerings": [
+                        {"name": "x" * 300, "priceValue": "NaN"},
+                        {"name": "Dependency Audit", "priceValue": "1.25"},
+                    ],
+                },
+            ]
+        }
+        return subprocess.CompletedProcess(arguments, 0, stdout=json_text(payload), stderr="")
+
+    providers = VirtualsLiveAdapter(runner=runner).discover_providers(
+        "audit", chain_id=BASE_SEPOLIA_CHAIN_ID
+    )
+
+    assert len(providers) == 1
+    assert [offering.name for offering in providers[0].offerings] == ["Dependency Audit"]
+
+
+def test_live_discovery_rejects_oversized_query_before_invoking_cli() -> None:
+    def unexpected_runner(
+        arguments: list[str], _timeout_seconds: int, _environment: Mapping[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        raise AssertionError("runner must not be invoked")
+
+    with pytest.raises(VirtualsAdapterError, match="1 to 512"):
+        VirtualsLiveAdapter(runner=unexpected_runner).discover_providers(
+            "x" * 513,
+            chain_id=BASE_SEPOLIA_CHAIN_ID,
+        )
+
+
+def test_live_history_captures_deliverable_verification_and_payment_metadata() -> None:
+    def runner(
+        arguments: list[str], _timeout_seconds: int, _environment: Mapping[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        payload = {
+            "jobId": "42",
+            "chainId": BASE_SEPOLIA_CHAIN_ID,
+            "status": "completed",
+            "entries": [
+                {
+                    "kind": "system",
+                    "event": {
+                        "type": "budget.set",
+                        "amount": 1.25,
+                        "fundRequest": {"amount": 1.25, "symbol": "USDC"},
+                    },
+                },
+                {
+                    "kind": "system",
+                    "event": {"type": "job.funded", "amount": 1.25},
+                },
+                {
+                    "kind": "system",
+                    "event": {
+                        "type": "job.submitted",
+                        "deliverable": "Audit passed: https://proof.example/result?token=private",
+                    },
+                },
+                {
+                    "kind": "system",
+                    "event": {"type": "job.completed", "reason": "Verifier accepted evidence"},
+                },
+            ],
+        }
+        return subprocess.CompletedProcess(arguments, 0, stdout=json_text(payload), stderr="")
+
+    snapshot = VirtualsLiveAdapter(runner=runner).get_job("42", chain_id=BASE_SEPOLIA_CHAIN_ID)
+
+    assert snapshot.deliverable == "Audit passed: https://proof.example/result"
+    assert snapshot.verification_result == "PASSED: Verifier accepted evidence"
+    assert snapshot.payment_metadata == {
+        "budget": "1.25",
+        "fund_request": {"amount": "1.25", "symbol": "USDC"},
+        "funded": True,
+        "funded_amount": "1.25",
+    }
+    assert snapshot.links == ("https://proof.example/result",)
+
+
+def test_live_history_rejects_non_finite_payment_metadata() -> None:
+    snapshot = VirtualsLiveAdapter._snapshot(
+        {"payment": {"amount": "NaN", "nested": {"budget": "Infinity"}}},
+        job_id="42",
+        chain_id=BASE_SEPOLIA_CHAIN_ID,
+    )
+
+    assert snapshot.payment_metadata == {
+        "amount": "[INVALID DECIMAL]",
+        "nested": {"budget": "[INVALID DECIMAL]"},
+    }
 
 
 def json_text(value: Any) -> str:

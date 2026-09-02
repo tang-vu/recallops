@@ -45,6 +45,8 @@ The API route is `POST /v1/decisions/{receipt_id}/anchor`. It requires the admin
 
 ## Base Sepolia approval boundary
 
+Before requesting approval, the read-only `make partner-preflight` command verified the official public RPC at chain ID 84532. A Foundry simulation on 2026-09-02 used a dummy submitter, did not broadcast, and estimated 555,569 gas at a maximum fee of 0.011 gwei, or 0.000006111259 testnet ETH for registry deployment under that observation. This is an estimate, not a transaction or public evidence.
+
 No Base Sepolia command should be run until the operator supplies explicit approval for all of these facts:
 
 - Exact action: deploy one registry and anchor one approved, verified RecallOps receipt.
@@ -67,6 +69,8 @@ export RECALLOPS_BASE_APPROVAL_ID=human-approval-reference
 ```
 
 The official rate-limited public Base RPC is suitable for reads but does not sign transactions. The deployment and first anchor must be separately signed by the approved wallet. Record the contract address, deployment transaction, anchor transaction, block numbers, chain ID, exact Git commit, and explorer links in `docs/evidence/` only after independently verifying them.
+
+Foundry 1.8.1 supports `--browser`, `--ledger`, `--trezor`, encrypted keystores, and remote KMS signers. Prefer a browser or hardware wallet so RecallOps never receives a raw key. The public RPC remains the network endpoint; the signer alone authorizes each transaction. Apply an explicit maximum fee and inspect the simulation before adding `--broadcast`.
 
 ## Claim policy
 

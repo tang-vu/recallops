@@ -18,6 +18,8 @@ Fixture mode does not invoke ACP. Its IDs always start with `fixture:` and it em
 
 An isolated install of ACP CLI 1.0.34 on 2026-09-01 resolved 400 packages, including maintained `@virtuals-protocol/acp-node-v2` 0.1.12. It also transitively included deprecated `@virtuals-protocol/acp-node` 0.3.0 beta for legacy commands. `npm audit --audit-level=high` reported 27 total findings, including 9 high-severity findings; the available audit fix did not clear them.
 
+The installed CLI and v2 source were re-inspected on 2026-09-02. The current browse JSON uses a top-level `data` list, chain objects with `chainId`, and offerings with `priceValue` denominated in USDC. Job history returns `entries`; RecallOps derives deliverables, budget and funding metadata, and completed or rejected verification outcomes from those entries. Adapter fixtures mirror these observed shapes.
+
 RecallOps does not call the legacy CLI paths and does not vendor this dependency into its default runtime. A live run requires an isolated, operator-reviewed CLI installation. This is an explicit known limitation, not a suppressed quality gate.
 
 ## Human-controlled bootstrap
@@ -55,6 +57,14 @@ IS_TESTNET=true acp browse "dependency security audit" --chain-ids 84532 --top-k
 In PowerShell, set `$env:IS_TESTNET = "true"` for that terminal before invoking the same `acp browse` command.
 
 Record the selected provider wallet, exact offering name, requirement schema, price, and currency. The live execution endpoint re-reads offering metadata and refuses a price or currency that exceeds the amount already approved by RecallOps.
+
+RecallOps also exposes a combined, read-only readiness command:
+
+```bash
+RECALLOPS_ACP_EXECUTABLE=/absolute/path/to/acp make partner-preflight
+```
+
+The 2026-09-02 run reached Base Sepolia chain ID 84532 and observed the current public block and gas price. ACP returned `NO_ACTIVE_AGENT`, so no provider discovery, job, payment, or signer action occurred. This is expected until the human-controlled bootstrap above is completed.
 
 ## Enabling dispatch
 

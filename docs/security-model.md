@@ -49,6 +49,8 @@ Request logs contain method, path, status, and correlation ID, not bodies or hea
 
 The ACP child process receives only an allowlist of operating-system environment variables plus `IS_TESTNET=true`; unrelated API tokens are not inherited. CLI errors are capped, recursively sanitized, and have URL query fragments removed before exposure.
 
+Discovery rejects empty or oversized queries before invoking the CLI and skips provider or offering records that fail strict bounds. Monetary values recalled from ACP history are converted immediately to finite decimal strings; non-finite values are marked invalid and never enter policy arithmetic.
+
 The viem child process likewise receives a minimal environment and a bounded JSON request over standard input. No private key is accepted by the client or placed in command arguments. Local tests use an unlocked Anvil development account. A live call requires an externally controlled signer, `RECALLOPS_ENABLE_BASE_SEPOLIA=true`, and a recorded approval identifier.
 
 ### External dispatch uncertainty

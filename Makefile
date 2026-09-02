@@ -1,8 +1,9 @@
-.PHONY: help install check check-contracts check-e2e api web demo-session-1 demo-session-2 demo-reset benchmark deletion-test
+.PHONY: help install check check-contracts check-e2e api web demo-session-1 demo-session-2 demo-reset benchmark deletion-test partner-preflight
 
 UV ?= uv
 FORGE ?= forge
 DEMO_DB ?= $(CURDIR)/.data/demo/recallops-demo.db
+RECALLOPS_ACP_EXECUTABLE ?= acp
 
 help:
 	@echo "RecallOps targets"
@@ -16,6 +17,7 @@ help:
 	@echo "  demo-reset      Reset only the validated demo database with confirmation"
 	@echo "  benchmark       Compare Sibyl memory with the explicit stateless baseline"
 	@echo "  deletion-test   Prove disabled Sibyl stops production commerce"
+	@echo "  partner-preflight Run read-only Base Sepolia and Virtuals readiness checks"
 
 install:
 	$(UV) sync --all-packages --all-extras --python 3.12
@@ -69,3 +71,6 @@ benchmark:
 
 deletion-test:
 	$(UV) run --project services/control-plane python -m recallops.benchmark.deletion --output "$(CURDIR)/benchmark/results/deletion-test.json"
+
+partner-preflight:
+	$(UV) run --project services/control-plane python -m recallops.integrations.preflight --acp-executable "$(RECALLOPS_ACP_EXECUTABLE)"

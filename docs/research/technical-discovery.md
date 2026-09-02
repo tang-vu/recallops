@@ -22,6 +22,8 @@ Sources:
 
 Choice: pin `sibyl-memory-client==0.8.0`, released August 31, 2026, with Python 3.12 for the control plane.
 
+Hackathon account tooling was rechecked on 2026-09-02. The official setup page currently recommends `sibyl-memory-cli[mcp]`; PyPI reported `sibyl-memory-cli==0.4.0` as the newest release. It was installed in an isolated Python 3.12 `uv tool` environment and resolved `sibyl-memory-client==0.8.0`, `sibyl-memory-hermes==0.4.0`, and `sibyl-memory-mcp==0.2.0`. This account-level CLI is separate from the project's frozen production environment. On Windows CP1252 terminals, the CLI's setup report currently raises `UnicodeEncodeError` while printing an arrow character; setting `PYTHONUTF8=1` avoids the display bug. The isolated extra also did not expose its nested MCP executable on `PATH`, so `sibyl-memory-mcp==0.2.0` was installed as a second isolated tool. After a dry run and configuration backup, `sibyl setup codex` added the `mcp_servers.sibyl_memory` entry and verified that the server starts cleanly.
+
 Verified API surface from the installed 0.8.0 wheel:
 
 - `MemoryClient.local(path, tenant_id=...)`

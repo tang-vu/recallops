@@ -50,6 +50,9 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Completed the fifth Sibyl tier with production `archive_entity(...)` calls for superseded records, expired permission/exception lifecycle records, and retired counterparties.
 - Re-inspected the current ACP CLI and v2 source, then aligned provider, offering, job-history, funding, deliverable, and verification parsing with its observed JSON shapes.
 - Added a machine-readable partner preflight that performs only public Base Sepolia reads and ACP provider discovery, with explicit no-write and no-signature assertions.
+- Installed the current `sibyl-memory-cli[mcp]==0.4.0` in an isolated Python 3.12 tool environment; it resolved the project's selected `sibyl-memory-client==0.8.0` and exposed the documented account activation, health, status, and Codex setup commands.
+- Backed up the existing Codex configuration, added the official `sibyl_memory` MCP entry with `sibyl setup`, and verified that the MCP server starts cleanly. The active Codex process still requires a restart before the new connector is available in-session.
+- Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
 
 ## Tests and checks actually run
 
@@ -124,6 +127,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Live Virtuals dispatch is intentionally disabled; live mode reports `NOT_DISPATCHED` until the explicit enable flag is set.
 - ACP CLI 1.0.34 has unresolved upstream audit findings and a deprecated legacy v1 transitive dependency, so it is not vendored in the default runtime.
 - ACP authentication has not been completed; the real CLI returns `NO_ACTIVE_AGENT` and no job exists.
+- Sibyl account activation requires the builder to finish the email-code or wallet step in the browser; account tier status is not claimed until `sibyl status` confirms it.
 - Rate limiting is not implemented in-process; current deployment binds to loopback and expects an edge control for public hosting.
 
 ## Live evidence obtained
@@ -146,3 +150,4 @@ None for completed local implementation. The remaining externally verifiable ste
 
 - Record only real partner evidence after the exact human approvals in Issues 1 and 2.
 - Record the demo and submit only after explicit human approval in Issues 3 and 4.
+- Complete the already-open Sibyl browser activation, verify the account tier, and restart Codex after this work period to load the verified MCP connector.

@@ -47,6 +47,7 @@ If any partner checkbox remains empty, do not claim that multiplier. Fixture IDs
 ## Submission fields
 
 - [x] Draft title, short description, long description, video description, build-log post, launch post, and tags are prepared in `docs/submission-draft.md`.
+- [x] Private form copy and truthful memory primitive selections are prepared in `docs/submission-form-copy.md`.
 - [ ] Final repository URL and commit copied into the submission form.
 - [ ] Final video URL approved by the builder.
 - [ ] All form fields reviewed by Vu Tang.

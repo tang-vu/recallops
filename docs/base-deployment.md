@@ -72,6 +72,8 @@ The official rate-limited public Base RPC is suitable for reads but does not sig
 
 Foundry 1.8.1 supports `--browser`, `--ledger`, `--trezor`, encrypted keystores, and remote KMS signers. Prefer a browser or hardware wallet so RecallOps never receives a raw key. The public RPC remains the network endpoint; the signer alone authorizes each transaction. Apply an explicit maximum fee and inspect the simulation before adding `--broadcast`.
 
+After selecting the public wallet, obtain only free test assets from the official [Base Sepolia funding guide](https://docs.base.org/get-started/get-funds). The Base faucet list provides test ETH, and the linked Circle faucet provides test USDC when Base Sepolia is selected. Never purchase funds for this evidence. The observed deployment plus one anchor is far below a proposed total cap of `0.0001` testnet ETH, but re-simulate both transactions and stop if that cap cannot be honored.
+
 ## Claim policy
 
 The Base multiplier remains unclaimed until both a real Base Sepolia deployment and a real product-triggered anchor transaction are visible on the official explorer. Local Anvil hashes are never presented as public evidence.

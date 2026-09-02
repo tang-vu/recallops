@@ -27,6 +27,7 @@ RecallOps does not call the legacy CLI paths and does not vendor this dependency
 These steps must be performed only after reviewing the upstream audit and approving the exact wallet and testnet action:
 
 ```bash
+export IS_TESTNET=true
 npm view @virtuals-protocol/acp-cli@1.0.34 version dependencies engines
 mkdir recallops-acp-review
 cd recallops-acp-review
@@ -37,6 +38,8 @@ npx acp skill print
 npx acp configure start --json
 ```
 
+On PowerShell, set `$env:IS_TESTNET = "true"` before the same commands. Testnet and mainnet use separate ACP configuration files; verify this variable in every live-evidence terminal.
+
 The last command returns a browser authentication URL and request ID. Do not place either in repository files or shared logs. After the owner completes the browser step:
 
 ```bash
@@ -44,7 +47,17 @@ npx acp configure complete --request-id <request-id> --json
 npx acp agent whoami --json
 ```
 
-Agent creation, signer registration, wallet funding, and any USDC approval are human-controlled actions. They are not automated by RecallOps setup.
+If no testnet agent exists, create one only after the owner confirms the public identity details. Select it as active, then add a signer with an explicit restricted policy. The split signer flow keeps its private key in the OS keychain and exposes an approval URL that must not be copied into repository files or public logs:
+
+```bash
+npx acp agent create --name "RecallOps Operator" --description "Policy-gated buyer for RecallOps integration evidence"
+npx acp agent use
+npx acp agent whoami --json
+npx acp agent add-signer --agent-id <agent-id> --policy restricted --no-wait --json
+npx acp agent signer-status --agent-id <agent-id> --request-id <request-id> --public-key <public-key> --json
+```
+
+Agent creation, signer registration, wallet funding, and any USDC approval are human-controlled actions. They are not automated by RecallOps setup. Use the official [Base Sepolia funding guide](https://docs.base.org/get-started/get-funds) for free test ETH and test USDC only after the active agent wallet address is known. Do not fund an unverified address, and do not approve a live job amount until read-only discovery identifies the exact provider and offering.
 
 ## Safe read-only verification
 

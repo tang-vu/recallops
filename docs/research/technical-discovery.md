@@ -64,6 +64,7 @@ Sources:
 - [Base x402 payment guide](https://docs.base.org/agents/guides/x402-payments)
 - [Base Virtuals plugin guide](https://docs.base.org/agents/plugins/native/virtuals)
 - [Base network connection reference](https://docs.base.org/base-chain/quickstart/connecting-to-base)
+- [Base Sepolia funding guide](https://docs.base.org/get-started/get-funds)
 - [Foundry v1.8.1 release](https://github.com/foundry-rs/foundry/releases/tag/v1.8.1)
 - [Solidity 0.8.36 release](https://www.soliditylang.org/blog/2026/07/09/solidity-0.8.36-release-announcement/)
 

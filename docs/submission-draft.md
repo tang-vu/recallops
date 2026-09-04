@@ -34,17 +34,19 @@ The shipped build includes a FastAPI policy engine, Next.js evidence console, gu
 
 ## First X post
 
-268 characters. Prepared for the Build in Public MCP `tweet` tool.
+267 characters. Prepared for the Build in Public MCP `tweet` tool.
 
 ```text
-Building RecallOps for the @sibylcap Hackathon.
+Autonomous agents should not forget expensive mistakes.
 
-A fresh agent can forget a failed provider, revoked permission, or spent budget. RecallOps puts Sibyl Memory before every economic action: APPROVE, DENY, or ESCALATE.
+I built RecallOps for the @sibyl_labs_ Hackathon: durable policy memory that gates hiring, spending, permissions, and retries with APPROVE, DENY, or ESCALATE.
 
-https://github.com/tang-vu/recallops #buildinpublic
+Live: https://recallops.tangvu.dev
+
+#BuildInPublic
 ```
 
-The selected MCP tool supports text-only posts, so this first post does not use generated media. No image or AI metadata is involved.
+A launch visual is prepared at `docs/evidence/social/recallops-launch-light.png`. Its PNG contains only image header, image data, and end chunks; generated metadata and ancillary profiles were stripped. Build in Public MCP 0.5.0 supports text-only posts and cannot attach the local asset.
 
 ## Demo launch post
 

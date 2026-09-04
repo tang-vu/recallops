@@ -128,3 +128,10 @@ Commit: `e2ded02` (`chore(deploy): publish Cloudflare-hosted preview`)
 - Removed decorative glow from the core surfaces and used restrained technical grids, borders, typography, and whitespace to carry hierarchy.
 - Rebuilt and restarted the public Next.js process, inspected delayed full-page desktop and Pixel 7 captures with live data, and retained the existing loopback API and Cloudflare boundary.
 - Passed strict TypeScript, zero-warning ESLint, 3 Vitest tests, the production build, and Playwright denial flows on desktop and mobile.
+
+### 12:42 - First social asset prepared
+
+- Generated a 1672 by 941 launch visual matching the light RecallOps interface and the two-session memory story.
+- Re-encoded the PNG with metadata stripping and verified directly that its only remaining chunks are `IHDR`, `IDAT`, and `IEND`.
+- Updated the first X post to tag the official Sibyl Labs account, link the live product, and stay within 267 characters without unsupported partner claims.
+- Confirmed that the installed and latest Build in Public MCP release is 0.5.0. Its tweet tool accepts text only and cannot start OAuth until an X developer app key and secret are configured locally, so no post was claimed or fabricated.

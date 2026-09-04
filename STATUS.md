@@ -54,7 +54,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Backed up the existing Codex configuration, added the official `sibyl_memory` MCP entry with `sibyl setup`, and verified that the MCP server starts cleanly. The active Codex process still requires a restart before the new connector is available in-session.
 - Completed the Sibyl browser bind, persisted non-empty local credentials after a Windows compatibility guard, and passed `sibyl health`. After the support-requested update check, a fresh process reported server tier `STAKE` from a subscription with unlimited storage through 2026-09-20. This is the effective hackathon entitlement even though the local credential label remains `FREE`.
 - Installed `@lucianfialho/build-in-public-mcp==0.5.0`, backed up the Codex configuration, and registered the local STDIO server with environment-variable forwarding and write-action approval. No X credentials were stored or printed.
-- Prepared a truthful 268-character first X post that tags Sibyl, links the public repository, and makes no unsupported partner or PMF claim. The selected MCP is text-only, so no generated image or metadata is involved.
+- Prepared a truthful 267-character first X post that tags Sibyl Labs, links the live product, and makes no unsupported partner or PMF claim.
+- Generated a light-theme launch visual, stripped all PNG ancillary metadata, verified that only `IHDR`, `IDAT`, and `IEND` chunks remain, and stored its SHA-256 provenance in the social evidence note.
 - Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
 - Deployed the judge-facing console at `https://recallops.tangvu.dev` through a dedicated Cloudflare Tunnel, with Next.js and FastAPI supervised by PM2 and the production Sibyl database on a persistent machine-local path outside Git.
 - Kept FastAPI loopback-only behind the Next.js allowlisted proxy, generated the shared administrative token locally without printing or committing it, and saved all three processes to the existing PM2 resurrection snapshot.
@@ -147,6 +148,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
 - The healthy account's local credential label remains `FREE` while the server-authoritative tier is `STAKE` with an unlimited cap. No paid `sibyl upgrade` flow will be attempted merely to reconcile the local display label.
 - The Build in Public MCP cannot authenticate or publish until the builder creates or selects an X developer app with read/write access and supplies its API key and secret locally. If X requires paid API credit, the flow must stop pending explicit cost approval.
+- Build in Public MCP 0.5.0 exposes only `tweet({ message })` and has no media upload or local image path parameter; the cleaned launch visual is ready but cannot be attached through this connector version.
 - Rate limiting is not implemented in-process. The public preview exposes only the allowlisted Next.js proxy routes through Cloudflare, uses a fixture-only demo database, and keeps all live partner writes disabled.
 
 ## Live evidence obtained

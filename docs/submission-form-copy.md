@@ -31,10 +31,17 @@ Select only primitives exercised by the submitted runtime and recorded demo.
 
 Do not select `semantic search`, `temporal / time-travel`, `summarization`, `reflection`, or `consolidation` unless the implementation, automated test, and demo visibly exercise that primitive before submission. RecallOps uses FTS5-capable Sibyl APIs internally, but the current critical decision path performs deterministic named retrieval and does not depend on semantic search.
 
+## Post URLs
+
+```text
+https://x.com/tangvu_dev/status/2095872903506215334
+```
+
+One of the two required build-in-public posts is now published. Add a second real URL only after that post exists.
+
 ## Fields that must remain empty for now
 
 - Demo video URL: no approved public upload exists.
-- Post URLs: no approved public posts exist.
 - Ready for judging: must remain unmarked until the final human truth review and explicit approval.
 
 ## Evidence behind the copy

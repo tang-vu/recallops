@@ -53,8 +53,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Installed the current `sibyl-memory-cli[mcp]==0.4.0` in an isolated Python 3.12 tool environment; it resolved the project's selected `sibyl-memory-client==0.8.0` and exposed the documented account activation, health, status, and Codex setup commands.
 - Backed up the existing Codex configuration, added the official `sibyl_memory` MCP entry with `sibyl setup`, and verified that the MCP server starts cleanly. The active Codex process still requires a restart before the new connector is available in-session.
 - Completed the Sibyl browser bind, persisted non-empty local credentials after a Windows compatibility guard, and passed `sibyl health`. After the support-requested update check, a fresh process reported server tier `STAKE` from a subscription with unlimited storage through 2026-09-20. This is the effective hackathon entitlement even though the local credential label remains `FREE`.
-- Installed `@lucianfialho/build-in-public-mcp==0.5.0`, backed up the Codex configuration, and registered the local STDIO server with environment-variable forwarding and write-action approval. No X credentials were stored or printed.
-- Prepared a truthful 267-character first X post that tags Sibyl Labs, links the live product, and makes no unsupported partner or PMF claim.
+- Initially installed the text-only Build in Public MCP 0.5.0, then adopted the browser-backed MCP revision after its account and media capabilities became available. No X API credentials, tokens, or cookies were requested or printed.
+- Published a truthful 267-character first X post that tags Sibyl Labs, links the live product, and makes no unsupported partner or PMF claim: `https://x.com/tangvu_dev/status/2095872903506215334`.
 - Generated a light-theme launch visual, stripped all PNG ancillary metadata, verified that only `IHDR`, `IDAT`, and `IEND` chunks remain, and stored its SHA-256 provenance in the social evidence note.
 - Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
 - Deployed the judge-facing console at `https://recallops.tangvu.dev` through a dedicated Cloudflare Tunnel, with Next.js and FastAPI supervised by PM2 and the production Sibyl database on a persistent machine-local path outside Git.
@@ -137,6 +137,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Redesigned browser gate: the denial flow passed in Chromium desktop and Pixel 7 mobile projects; separate full-page public renders were visually inspected at both breakpoints.
 - Public redesigned flow: headless Chromium loaded `recallops.tangvu.dev`, found the memory bridge, submitted Agent A, and observed `DENY` with `REPEATED_FAILURE_FINGERPRINT` through the real backend.
 - Light-interface gate: strict TypeScript, zero-warning ESLint, 3 Vitest tests, a production build, and both Playwright browser projects passed; delayed public desktop and mobile captures were inspected with Sibyl healthy and the gate armed.
+- Social publication check: the revised connector reported one attempted X publication, one success, status ID `2095872903506215334`, and no error; the attached file hash matched the documented metadata-stripped asset.
 
 ## Known failures
 
@@ -147,8 +148,6 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - ACP authentication has not been completed; the real CLI returns `NO_ACTIVE_AGENT` and no job exists.
 - Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
 - The healthy account's local credential label remains `FREE` while the server-authoritative tier is `STAKE` with an unlimited cap. No paid `sibyl upgrade` flow will be attempted merely to reconcile the local display label.
-- The Build in Public MCP cannot authenticate or publish until the builder creates or selects an X developer app with read/write access and supplies its API key and secret locally. If X requires paid API credit, the flow must stop pending explicit cost approval.
-- Build in Public MCP 0.5.0 exposes only `tweet({ message })` and has no media upload or local image path parameter; the cleaned launch visual is ready but cannot be attached through this connector version.
 - Rate limiting is not implemented in-process. The public preview exposes only the allowlisted Next.js proxy routes through Cloudflare, uses a fixture-only demo database, and keeps all live partner writes disabled.
 
 ## Live evidence obtained
@@ -158,6 +157,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Base Sepolia deployment and transaction: not yet obtained; no multiplier claim.
 - Virtuals ACP job: not yet obtained; no multiplier claim.
 - Public RecallOps deployment: obtained at `https://recallops.tangvu.dev`; real hosted Sibyl health, two-process recall, and a browser-observed denial are documented in `docs/evidence/public-deployment.md`.
+- First X build-in-public post: obtained at `https://x.com/tangvu_dev/status/2095872903506215334` with the verified launch visual attached.
 
 ## Human actions needed
 
@@ -174,5 +174,5 @@ None for completed local implementation. The remaining externally verifiable ste
 - Record the demo and submit only after explicit human approval in Issues 3 and 4.
 - Reload the private build page to confirm that its Sibyl setup milestone recognizes the server-authoritative `STAKE` subscription.
 - Restart Codex after this work period to load the verified MCP connector.
-- Restart Codex after the X credentials are available so the new Build in Public MCP can run its PIN-based OAuth flow and publish the approved first post.
+- Publish a second evidence-backed build-in-public post only after a distinct project milestone and explicit publication approval.
 - Keep the public PM2 and Cloudflare processes healthy through the submission window; rebuild and restart only after coherent commits.

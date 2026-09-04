@@ -34,7 +34,7 @@ The shipped build includes a FastAPI policy engine, Next.js evidence console, gu
 
 ## First X post
 
-267 characters. Prepared for the Build in Public MCP `tweet` tool.
+267 characters. Published through the browser-backed Build in Public MCP on 2026-09-04.
 
 ```text
 Autonomous agents should not forget expensive mistakes.
@@ -46,7 +46,9 @@ Live: https://recallops.tangvu.dev
 #BuildInPublic
 ```
 
-A launch visual is prepared at `docs/evidence/social/recallops-launch-light.png`. Its PNG contains only image header, image data, and end chunks; generated metadata and ancillary profiles were stripped. Build in Public MCP 0.5.0 supports text-only posts and cannot attach the local asset.
+Published URL: `https://x.com/tangvu_dev/status/2095872903506215334`
+
+The attached launch visual is stored at `docs/evidence/social/recallops-launch-light.png`. Its PNG contains only image header, image data, and end chunks; generated metadata and ancillary profiles were stripped.
 
 ## Demo launch post
 

@@ -1,6 +1,6 @@
 # Social Asset Evidence
 
-`recallops-launch-light.png` is the prepared visual for the first RecallOps build-in-public post.
+`recallops-launch-light.png` is the visual published with the first RecallOps build-in-public post.
 
 ## Provenance
 
@@ -19,4 +19,9 @@ IHDR, IDAT, IEND
 
 No `tEXt`, `zTXt`, `iTXt`, `eXIf`, `iCCP`, or `tIME` chunk remains in the prepared file.
 
-This asset is not evidence of a published post. Publication must be recorded separately with the real X status URL.
+## Publication
+
+- Account: `tangvu_dev`
+- X status ID: `2095872903506215334`
+- URL: `https://x.com/tangvu_dev/status/2095872903506215334`
+- Connector result: one attempted platform, one successful publication, no reported error

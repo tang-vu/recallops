@@ -135,3 +135,10 @@ Commit: `e2ded02` (`chore(deploy): publish Cloudflare-hosted preview`)
 - Re-encoded the PNG with metadata stripping and verified directly that its only remaining chunks are `IHDR`, `IDAT`, and `IEND`.
 - Updated the first X post to tag the official Sibyl Labs account, link the live product, and stay within 267 characters without unsupported partner claims.
 - Confirmed that the installed and latest Build in Public MCP release is 0.5.0. Its tweet tool accepts text only and cannot start OAuth until an X developer app key and secret are configured locally, so no post was claimed or fabricated.
+
+### 13:54 - First build-in-public post published
+
+- Rechecked the revised Build in Public MCP and found one active `tangvu_dev` X account with text, image, GIF, video, carousel, thread, and poll capabilities.
+- Prepared a single-use preview containing the exact 267-character copy, the metadata-stripped PNG, its verified SHA-256, and four concrete project evidence statements.
+- Published the approved preview once through the browser-backed connector and received the real status ID `2095872903506215334` with no error.
+- Public post: `https://x.com/tangvu_dev/status/2095872903506215334`.

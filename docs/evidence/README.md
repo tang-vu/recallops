@@ -9,6 +9,7 @@ This directory indexes reproducible, non-sensitive evidence. It must never conta
 | Sibyl Memory | Local 0.8.0 five-tier integration proof | Obtained; archive tests use the real SQLite `archived_entities` table |
 | Sibyl Memory | Separate-process Session 1 write and Session 2 recall | Obtained locally and covered by an automated integration test |
 | Control plane | Uvicorn loopback health and versioned OpenAPI smoke test | Obtained locally; 58 automated tests pass |
+| Public deployment | PM2, dedicated Cloudflare Tunnel, hosted Sibyl health, and Chromium denial flow | Obtained; see [`public-deployment.md`](public-deployment.md) |
 | Virtuals ACP | Policy-approved fixture dispatch and durable receipt link | Obtained locally; IDs start with `fixture:` and links are empty |
 | Virtuals ACP | Read-only current CLI preflight | Obtained; stopped at `NO_ACTIVE_AGENT`, with no job or payment |
 | Virtuals ACP | Real job ID and verifiable link | Not obtained; no multiplier claim |

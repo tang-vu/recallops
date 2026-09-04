@@ -6,6 +6,8 @@
 
 RecallOps uses durable policy and outcome memory to decide whether an autonomous agent may hire, pay, or reuse another agent. Every proposed economic action receives exactly one inspectable decision: `APPROVE`, `DENY`, or `ESCALATE`.
 
+Live control-plane preview: [recallops.tangvu.dev](https://recallops.tangvu.dev). The preview uses real local Sibyl persistence, visibly labeled Virtuals fixtures, and no configured Base transaction signer.
+
 ## Why it exists
 
 Agent sessions are disposable; economic consequences are not. A fresh process must not forget that a provider failed the same task, a permission was revoked, or a cumulative budget was already consumed.
@@ -60,6 +62,8 @@ FastAPI control plane
 The browser never accesses the memory database directly. Partner integrations cannot execute before a valid policy receipt exists.
 
 See [the full architecture](docs/architecture.md), [security model](docs/security-model.md), and [judging map](docs/judging-map.md).
+
+The public preview is self-hosted behind a dedicated Cloudflare Tunnel. PM2 keeps the web console, loopback-only API, and tunnel connector alive, while the Sibyl database remains on a persistent machine-local path outside the repository. See [deployment operations](docs/deployment.md) and the [public deployment evidence](docs/evidence/public-deployment.md).
 
 ## Decision pipeline
 

@@ -1,6 +1,6 @@
 # RecallOps Status
 
-Last updated: 2026-09-02 UTC
+Last updated: 2026-09-04 UTC
 
 ## Current milestone
 
@@ -56,6 +56,9 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Installed `@lucianfialho/build-in-public-mcp==0.5.0`, backed up the Codex configuration, and registered the local STDIO server with environment-variable forwarding and write-action approval. No X credentials were stored or printed.
 - Prepared a truthful 268-character first X post that tags Sibyl, links the public repository, and makes no unsupported partner or PMF claim. The selected MCP is text-only, so no generated image or metadata is involved.
 - Added truth-reviewed copy for the private Sibyl submission form, including the load-bearing deletion statement, fresh-process walkthrough, and only the memory primitives exercised by the current runtime.
+- Deployed the judge-facing console at `https://recallops.tangvu.dev` through a dedicated Cloudflare Tunnel, with Next.js and FastAPI supervised by PM2 and the production Sibyl database on a persistent machine-local path outside Git.
+- Kept FastAPI loopback-only behind the Next.js allowlisted proxy, generated the shared administrative token locally without printing or committing it, and saved all three processes to the existing PM2 resurrection snapshot.
+- Ran the hosted two-process demo and retained its real Sibyl evidence: Session 1 PID 9072 wrote Agent A's failure; Session 2 PID 41436 recalled it, denied Agent A, and approved Agent B in visibly labeled fixture mode.
 
 ## Tests and checks actually run
 
@@ -123,6 +126,9 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Repeated web and contract gates: strict TypeScript, ESLint, 3 Vitest tests, production build, 2 Playwright projects, 13 Foundry tests with 1,024 fuzz cases, 3 viem tests, and all three dependency audits passed
 - Rebuilt the production control-plane image with the preflight module; Docker Compose reached healthy with Sibyl schema 4 and exposed 25 versioned OpenAPI paths, then stopped cleanly.
 - GitHub Actions run 33604288759 passed the Python control-plane, web/Playwright, and Solidity/viem jobs for submission-copy commit `ebbb563`.
+- Public deployment checks: local API, local web, local proxy, public UI, and public proxied health all returned HTTP 200.
+- Public end-to-end Chromium check: the hosted UI submitted Agent A through Next.js -> FastAPI -> Sibyl and displayed `DENY` with `REPEATED_FAILURE_FINGERPRINT`.
+- PM2 persistence check: `recallops-api`, `recallops-web`, and `recallops-tunnel` remained online and were saved to the existing `PM2 Resurrect` task snapshot.
 
 ## Known failures
 
@@ -134,7 +140,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
 - The healthy account's local credential label remains `FREE` while the server-authoritative tier is `STAKE` with an unlimited cap. No paid `sibyl upgrade` flow will be attempted merely to reconcile the local display label.
 - The Build in Public MCP cannot authenticate or publish until the builder creates or selects an X developer app with read/write access and supplies its API key and secret locally. If X requires paid API credit, the flow must stop pending explicit cost approval.
-- Rate limiting is not implemented in-process; current deployment binds to loopback and expects an edge control for public hosting.
+- Rate limiting is not implemented in-process. The public preview exposes only the allowlisted Next.js proxy routes through Cloudflare, uses a fixture-only demo database, and keeps all live partner writes disabled.
 
 ## Live evidence obtained
 
@@ -142,6 +148,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Local Anvil registry deployment and verified viem transaction: obtained; explicitly not public Base evidence.
 - Base Sepolia deployment and transaction: not yet obtained; no multiplier claim.
 - Virtuals ACP job: not yet obtained; no multiplier claim.
+- Public RecallOps deployment: obtained at `https://recallops.tangvu.dev`; real hosted Sibyl health, two-process recall, and a browser-observed denial are documented in `docs/evidence/public-deployment.md`.
 
 ## Human actions needed
 
@@ -159,3 +166,4 @@ None for completed local implementation. The remaining externally verifiable ste
 - Reload the private build page to confirm that its Sibyl setup milestone recognizes the server-authoritative `STAKE` subscription.
 - Restart Codex after this work period to load the verified MCP connector.
 - Restart Codex after the X credentials are available so the new Build in Public MCP can run its PIN-based OAuth flow and publish the approved first post.
+- Keep the public PM2 and Cloudflare processes healthy through the submission window; rebuild and restart only after coherent commits.

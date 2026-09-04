@@ -113,3 +113,5 @@ The execution gate and job state machine enforce these invariants:
 The root Compose service runs the control plane on loopback and persists the Sibyl file in a named Docker volume. Administrative mutations remain disabled unless `RECALLOPS_ADMIN_TOKEN` is explicitly set. The default integration labels are `FIXTURE MODE` and `NOT CONFIGURED`.
 
 The Next.js application reaches only the API through an allowlisted same-origin proxy. The Virtuals adapter runs inside the control plane only after the durable execution gate. Base anchoring is a separate post-verification boundary and its transaction result returns to Sibyl as WARM evidence plus a COLD audit event.
+
+The public hackathon preview uses the same trust boundaries without placing SQLite in a serverless filesystem. PM2 runs Next.js and FastAPI on separate loopback ports, a dedicated Cloudflare Tunnel exposes only Next.js, and the server-side proxy is the sole public path to the API. The durable Sibyl database, logs, and tunnel configuration live under the machine-local application data directory and are excluded from Git. Exact operational commands are documented in [deployment.md](deployment.md).

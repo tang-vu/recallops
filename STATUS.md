@@ -59,6 +59,8 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Deployed the judge-facing console at `https://recallops.tangvu.dev` through a dedicated Cloudflare Tunnel, with Next.js and FastAPI supervised by PM2 and the production Sibyl database on a persistent machine-local path outside Git.
 - Kept FastAPI loopback-only behind the Next.js allowlisted proxy, generated the shared administrative token locally without printing or committing it, and saved all three processes to the existing PM2 resurrection snapshot.
 - Ran the hosted two-process demo and retained its real Sibyl evidence: Session 1 PID 9072 wrote Agent A's failure; Session 2 PID 41436 recalled it, denied Agent A, and approved Agent B in visibly labeled fixture mode.
+- Replaced the conventional dashboard treatment with a distinctive memory authority console: operational thesis, four-stage control route, instrument-style gate status, mandatory read contract, oversized verdict, cross-session memory bridge, evidence ledger, and truth surface.
+- Preserved data integrity through the redesign: every metric remains derived, fixture and partner claim boundaries remain explicit, and the decision engine and API behavior are unchanged.
 
 ## Tests and checks actually run
 
@@ -129,6 +131,9 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Public deployment checks: local API, local web, local proxy, public UI, and public proxied health all returned HTTP 200.
 - Public end-to-end Chromium check: the hosted UI submitted Agent A through Next.js -> FastAPI -> Sibyl and displayed `DENY` with `REPEATED_FAILURE_FINGERPRINT`.
 - PM2 persistence check: `recallops-api`, `recallops-web`, and `recallops-tunnel` remained online and were saved to the existing `PM2 Resurrect` task snapshot.
+- Redesigned web gate: strict TypeScript passed, ESLint passed with zero warnings, 3 Vitest tests passed, and the Next.js production build completed.
+- Redesigned browser gate: the denial flow passed in Chromium desktop and Pixel 7 mobile projects; separate full-page public renders were visually inspected at both breakpoints.
+- Public redesigned flow: headless Chromium loaded `recallops.tangvu.dev`, found the memory bridge, submitted Agent A, and observed `DENY` with `REPEATED_FAILURE_FINGERPRINT` through the real backend.
 
 ## Known failures
 

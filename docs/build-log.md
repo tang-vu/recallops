@@ -99,3 +99,24 @@ Commit: recorded in Git history as `feat(memory): archive superseded lifecycle r
 - Exercised the real isolated CLI through the adapter. It reached the expected `NO_ACTIVE_AGENT` boundary and emitted no job, payment, or partner evidence.
 - Added a read-only machine-readable preflight. It observed Base Sepolia chain ID 84532, block 46,276,519, and gas price 6,000,000 wei while asserting zero writes and zero signature requests.
 - Simulated the Base Sepolia deployment with a dummy submitter and no broadcast. Foundry estimated 555,569 gas and 0.000006111259 testnet ETH at the observed maximum fee.
+
+## 2026-09-04
+
+### 04:50 - Persistent public preview
+
+- Created a dedicated Cloudflare Tunnel for `recallops.tangvu.dev` without changing the routes used by other projects on the host.
+- Ran Next.js, loopback-only FastAPI, and the tunnel connector under PM2 with automatic resurrection.
+- Moved the deployed Sibyl database and logs to a persistent machine-local application directory outside Git.
+- Exercised the hosted Session 1 and Session 2 controls. Two separate process IDs proved that the second process recalled the first process's failure and denied Agent A.
+- Verified the public UI and proxied health endpoint over HTTPS, then recorded non-sensitive deployment evidence.
+
+Commit: `e2ded02` (`chore(deploy): publish Cloudflare-hosted preview`)
+
+### 06:02 - Signature memory authority interface
+
+- Reworked the visual system from a conventional technical dashboard into a purpose-built memory authority console.
+- Added a large operational thesis, a four-stage commerce route, an instrument-style decision gate, a mandatory-read contract, an oversized verdict, and a visual memory bridge between source and recall sessions.
+- Preserved strict evidence truthfulness: all telemetry remains derived from API records, fixture and live states remain unmistakable, and no decorative metric was introduced.
+- Inspected full-page desktop and Pixel 7 renders from the public deployment.
+- Passed strict TypeScript, zero-warning ESLint, 3 Vitest tests, a production build, and the critical Playwright denial flow on desktop and mobile.
+- Re-ran the actual public browser path through Next.js, FastAPI, and Sibyl and observed `DENY` with `REPEATED_FAILURE_FINGERPRINT`.

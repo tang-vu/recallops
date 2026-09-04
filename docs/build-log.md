@@ -120,3 +120,11 @@ Commit: `e2ded02` (`chore(deploy): publish Cloudflare-hosted preview`)
 - Inspected full-page desktop and Pixel 7 renders from the public deployment.
 - Passed strict TypeScript, zero-warning ESLint, 3 Vitest tests, a production build, and the critical Playwright denial flow on desktop and mobile.
 - Re-ran the actual public browser path through Next.js, FastAPI, and Sibyl and observed `DENY` with `REPEATED_FAILURE_FINGERPRINT`.
+
+### 08:11 - Light institutional visual system
+
+- Replaced the dark palette with a warm paper and graphite interface so RecallOps does not resemble the default dark aesthetic used by many AI products.
+- Retained the product-specific control language: signal green for memory authority, decision red for denials, the instrument gate, the cross-session bridge, and the evidence-first layout.
+- Removed decorative glow from the core surfaces and used restrained technical grids, borders, typography, and whitespace to carry hierarchy.
+- Rebuilt and restarted the public Next.js process, inspected delayed full-page desktop and Pixel 7 captures with live data, and retained the existing loopback API and Cloudflare boundary.
+- Passed strict TypeScript, zero-warning ESLint, 3 Vitest tests, the production build, and Playwright denial flows on desktop and mobile.

@@ -61,6 +61,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Ran the hosted two-process demo and retained its real Sibyl evidence: Session 1 PID 9072 wrote Agent A's failure; Session 2 PID 41436 recalled it, denied Agent A, and approved Agent B in visibly labeled fixture mode.
 - Replaced the conventional dashboard treatment with a distinctive memory authority console: operational thesis, four-stage control route, instrument-style gate status, mandatory read contract, oversized verdict, cross-session memory bridge, evidence ledger, and truth surface.
 - Preserved data integrity through the redesign: every metric remains derived, fixture and partner claim boundaries remain explicit, and the decision engine and API behavior are unchanged.
+- Recast the console in a high-contrast light visual system built around warm paper, graphite ink, institutional green, and decision red; removed the default dark AI-product aesthetic without weakening the control-plane hierarchy.
 
 ## Tests and checks actually run
 
@@ -134,6 +135,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - Redesigned web gate: strict TypeScript passed, ESLint passed with zero warnings, 3 Vitest tests passed, and the Next.js production build completed.
 - Redesigned browser gate: the denial flow passed in Chromium desktop and Pixel 7 mobile projects; separate full-page public renders were visually inspected at both breakpoints.
 - Public redesigned flow: headless Chromium loaded `recallops.tangvu.dev`, found the memory bridge, submitted Agent A, and observed `DENY` with `REPEATED_FAILURE_FINGERPRINT` through the real backend.
+- Light-interface gate: strict TypeScript, zero-warning ESLint, 3 Vitest tests, a production build, and both Playwright browser projects passed; delayed public desktop and mobile captures were inspected with Sibyl healthy and the gate armed.
 
 ## Known failures
 

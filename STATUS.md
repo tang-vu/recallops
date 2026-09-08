@@ -22,6 +22,14 @@ Hackathon milestones 0 through 6 remain complete; live partner evidence is uncha
   passed on 44 files. Web lint/typecheck, 3 unit tests, production build, and all
   8 browser tests passed (one worker locally). Both review layouts were inspected.
 - Submission video and final build-page readiness remain outstanding.
+- Deployed `c10ea5c` after a consistent runtime backup and restarted only the
+  RecallOps API/web, preserving existing credentials and PM2 environment.
+- Public browser verification passed at 2026-09-08 17:16 UTC: owner review allowed
+  a HIGH request, then a new verified failure blocked the same receipt through
+  the agent authorization endpoint. The review survived a page reload.
+- [GitHub CI run 34255819502](https://github.com/tang-vu/recallops/actions/runs/34255819502)
+  passed all three jobs, including all 72 backend tests and 8 browser tests.
+  This includes the corrected social-draft punctuation check found locally.
 
 ## Developer product preview / 2026-09-05
 

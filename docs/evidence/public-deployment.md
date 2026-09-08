@@ -49,3 +49,30 @@ The different process IDs and session UUIDs are returned by the runtime itself. 
 ## Claim boundary
 
 This evidence proves the public UI, control-plane proxy, persistent Sibyl database, and fresh-process policy recall. It is not evidence of a real Virtuals ACP job or a Base Sepolia transaction. The public interface accurately displays `FIXTURE MODE` and `BASE NOT CONFIGURED`.
+
+## Developer workspace owner review / 2026-09-09 Vietnam time
+
+Release `c10ea5cdd00c489c5b8b6608a51b19cc3400adb9` was built, committed,
+pushed, and deployed with a consistent runtime backup. Existing workspace keys
+and databases were preserved. The RecallOps API and web processes were restarted
+with their existing environment; PM2 state was saved.
+
+At 2026-09-08T17:16:47Z, Chromium exercised the public workspace against real
+Sibyl storage:
+
+1. A HIGH request returned `ESCALATE` and entered the owner review queue.
+2. The owner saved an approval with a reason. A current authorization check
+   returned allowed.
+3. A newly recorded matching failure changed authorization to blocked with
+   `REPEATED_FAILURE_FINGERPRINT`.
+4. Reloading retained the owner review. The agent bearer endpoint independently
+   confirmed `allowed_now: false` for receipt
+   `e2052312-ee18-560f-a2ae-6ef8912dbeda`.
+
+The original receipt remains `ESCALATE`; the owner review is a separate durable
+record. No payment or job was executed. Local API health, local web, public home,
+API guide, and public proxied health all returned HTTP 200.
+
+[Release CI](https://github.com/tang-vu/recallops/actions/runs/34255819502)
+passed the Python, web, and receipt registry jobs: 72 backend tests and 8 browser
+tests passed, along with the configured build, lint, type, and dependency gates.

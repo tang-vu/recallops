@@ -49,7 +49,7 @@ If any partner checkbox remains empty, do not claim that multiplier. Fixture IDs
 - [x] Draft title, short description, long description, video description, build-log post, launch post, and tags are prepared in `docs/submission-draft.md`.
 - [x] Private form copy and truthful memory primitive selections are prepared in `docs/submission-form-copy.md`.
 - [x] First build-in-public post published with the verified launch visual and recorded status URL.
-- [ ] Publish and record the second required build-in-public post.
+- [x] Publish and record the required demo-video post, paired with the September 8 build-log; see [publication evidence](evidence/social/demo-post-2026-09-09.md).
 - [ ] Final repository URL and commit copied into the submission form.
 - [ ] Final video URL approved by the builder.
 - [ ] All form fields reviewed by Vu Tang.

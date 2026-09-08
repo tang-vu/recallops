@@ -1,7 +1,9 @@
 # Continuous demo recording / September 9, 2026
 
 A local demo video was recorded from the public RecallOps deployment. It is
-prepared for review; it has not been uploaded, posted, or submitted.
+recorded artifact is described below. It was subsequently published in the
+[September 9 demo-video post](social/demo-post-2026-09-09.md); the hackathon
+submission has not been marked ready.
 
 ## Verified artifact
 
@@ -57,5 +59,6 @@ passed all three jobs. The preceding UI release explicitly passed 72 backend
 tests and 9 browser tests, with one duplicate mobile process writer skipped;
 the proof test separately checks mobile viewport overflow.
 
-A public video URL and the required demo-video post are still pending. Neither
-this document nor a local MP4 marks the private build page ready.
+Public video and required demo-video post:
+https://x.com/tangvu_dev/status/2097381347782525063.
+The private build page still needs the final submission step.

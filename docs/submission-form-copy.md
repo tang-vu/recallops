@@ -44,12 +44,18 @@ New product build-log published on 2026-09-08 with both `@sibylcap` and
 https://x.com/tangvu_dev/status/2097309402600759522
 ```
 
-The current submission pair should use this build-log and a future demo-video
-post. The demo-video post is still missing; two image posts do not replace it.
+Demo-video post published on 2026-09-09, with the continuous 176.12-second
+recording and both tags:
+
+```text
+https://x.com/tangvu_dev/status/2097381347782525063
+```
+
+Use the September 8 build-log and September 9 demo-video post as the submission
+pair. The September 9 post is also the public demo-video URL.
 
 ## Fields that must remain empty for now
 
-- Demo video URL: no approved public upload exists.
 - Ready for judging: must remain unmarked until the final human truth review and explicit approval.
 
 ## Evidence behind the copy

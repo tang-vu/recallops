@@ -7,6 +7,18 @@ Last updated: 2026-09-09 (Asia/Saigon)
 Developer workspace preview deployed at https://recallops.tangvu.dev.
 Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
 
+## Demo publication / 2026-09-09
+
+- Published the recorded demo through Build in Public MCP:
+  https://x.com/tangvu_dev/status/2097381347782525063.
+- Verified the caption, `@sibylcap` and `@sibyl_labs_` tags, video attachment,
+  and full 176.12-second duration on the public post.
+- The required post pair is now the September 8 product build-log and September
+  9 demo video. Submission copy has both URLs and accurately describes the
+  current workspace, review flow, and owner-reported spending limits.
+- [Publication evidence](docs/evidence/social/demo-post-2026-09-09.md) records
+  the successful MCP result. Final build-page submission remains pending.
+
 ## Continuous submission demo / 2026-09-09
 
 - Deployed a paired fresh-process evidence view: both PIDs, UUIDs, UTC times,

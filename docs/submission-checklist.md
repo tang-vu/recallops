@@ -50,7 +50,7 @@ If any partner checkbox remains empty, do not claim that multiplier. Fixture IDs
 - [x] Private form copy and truthful memory primitive selections are prepared in `docs/submission-form-copy.md`.
 - [x] First build-in-public post published with the verified launch visual and recorded status URL.
 - [x] Publish and record the required demo-video post, paired with the September 8 build-log; see [publication evidence](evidence/social/demo-post-2026-09-09.md).
-- [ ] Final repository URL and commit copied into the submission form.
+- [x] Repo, video, post pair, memory fields, and primitives saved and independently reloaded on the private build page; see [saved-page evidence](evidence/build-page-preparation-2026-09-09.md). The form has no commit field; recorded source commits are in the video evidence.
 - [ ] Final video URL approved by the builder.
 - [ ] All form fields reviewed by Vu Tang.
 - [ ] Explicit human approval received to submit.

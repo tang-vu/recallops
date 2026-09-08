@@ -2,6 +2,12 @@
 
 Prepared on 2026-09-02 UTC. Copy review only. Do not save the private form, publish posts, upload a video, or mark the build ready without Vu Tang's explicit approval.
 
+Update / September 9: the repo, published video, post pair, and prepared memory
+fields were saved to the private build page as part of the user's authorized
+submission preparation. An independent reload verified the values and checked
+primitives. Ready remains unmarked for the planned September 10 submission;
+see [saved-page evidence](evidence/build-page-preparation-2026-09-09.md).
+
 ## Public repository URL
 
 ```text

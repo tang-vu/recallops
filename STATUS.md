@@ -7,6 +7,17 @@ Last updated: 2026-09-09 (Asia/Saigon)
 Developer workspace preview deployed at https://recallops.tangvu.dev.
 Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
 
+## Private build-page preparation / 2026-09-09
+
+- Recovered the existing registration link via connected Gmail and saved the
+  repo, published video, correct post pair, deletion impact, memory walkthrough,
+  and `recall`/`entities` selections to the private build page.
+- An independent browser reload matched every saved field. All four artifact
+  milestones are complete. The private link and browser session stay outside Git.
+- Ready remains unmarked for the planned September 10 submission. No future
+  automatic submission task is scheduled. [Saved-page evidence](docs/evidence/build-page-preparation-2026-09-09.md)
+  records the verified state without exposing the edit link.
+
 ## Demo publication / 2026-09-09
 
 - Published the recorded demo through Build in Public MCP:

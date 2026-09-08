@@ -1,7 +1,7 @@
 # Continuous demo recording / September 9, 2026
 
-A local demo video was recorded from the public RecallOps deployment. It is
-recorded artifact is described below. It was subsequently published in the
+A local demo video was recorded from the public RecallOps deployment. The
+artifact is described below. It was subsequently published in the
 [September 9 demo-video post](social/demo-post-2026-09-09.md); the hackathon
 submission has not been marked ready.
 

@@ -35,6 +35,9 @@ the invented database-deletion example.
 
 ## September 9 follow-up draft (not scheduled or published)
 
+This historical draft was subsequently revised and published with the real
+video on September 9. See [the publication record](demo-post-2026-09-09.md).
+
 RecallOps remembers the audit failure your next agent session would otherwise forget.
 
 Persist the failure. Start a fresh session. Recall the evidence. Deny the repeat.

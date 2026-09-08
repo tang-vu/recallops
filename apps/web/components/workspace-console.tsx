@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 import type { DecisionReceipt } from "@/lib/types";
+import {
+  ReviewQueue,
+  type AuthorizationCheck,
+  type OwnerReview,
+} from "@/components/review-queue";
 
 type Policy = {
   per_action_limit: string;
@@ -38,7 +43,11 @@ type Action = {
   required_verifier: string | null;
   risk_class: string;
 };
-type History = { receipt: DecisionReceipt; action: Action | null };
+type History = {
+  receipt: DecisionReceipt;
+  action: Action | null;
+  review?: OwnerReview | null;
+};
 class WorkspaceError extends Error {
   constructor(
     message: string,
@@ -275,15 +284,17 @@ function WorkspaceBody({
   onLogout: () => Promise<void>;
 }) {
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState("overview");
+  const [busy, setBusy] = useState(false);
   const history = useQuery({
     queryKey: ["workspace-history", workspace.id],
     queryFn: () => api<History[]>("/decisions"),
     retry: false,
+    refetchInterval: tab === "reviews" && !busy ? 10_000 : false,
   });
-  const [tab, setTab] = useState("overview");
+  const [checks, setChecks] = useState<Record<string, AuthorizationCheck>>({});
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<DecisionReceipt | null>(null);
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
@@ -379,6 +390,7 @@ function WorkspaceBody({
           ["policy", "Policy & access"],
           ["evaluate", "Request playground"],
           ["history", "Decision history"],
+          ["reviews", "Review queue"],
           ["failures", "Record a failure"],
           ["connect", "Connect agent"],
         ].map(([id, label]) => (
@@ -516,6 +528,58 @@ function WorkspaceBody({
           </div>
         </>
       )}
+      {tab === "reviews" &&
+        (history.isPending ? (
+          <p role="status">Loading review queue…</p>
+        ) : history.isError ? (
+          <div className="alert danger" role="alert">
+            {history.error.message}
+            <button
+              className="secondary-button"
+              onClick={() => void history.refetch()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <ReviewQueue
+            items={decisions}
+            busy={busy}
+            checks={checks}
+            onReview={(id, decision, reason) =>
+              void perform(async () => {
+                await queryClient.cancelQueries({
+                  queryKey: ["workspace-history", workspace.id],
+                });
+                const saved = await api<{ review: OwnerReview }>(
+                  `/decisions/${id}/review`,
+                  "POST",
+                  {
+                    decision,
+                    reason,
+                  },
+                );
+                queryClient.setQueryData<History[]>(
+                  ["workspace-history", workspace.id],
+                  (previous) =>
+                    previous?.map((item) =>
+                      item.receipt.receipt_id === id
+                        ? { ...item, review: saved.review }
+                        : item,
+                    ),
+                );
+              }, "Owner review saved. The agent must check current authorization before execution.")
+            }
+            onCheck={(id) =>
+              void perform(async () => {
+                const check = await api<AuthorizationCheck>(
+                  `/decisions/${id}/authorization`,
+                );
+                setChecks((previous) => ({ ...previous, [id]: check }));
+              })
+            }
+          />
+        ))}
       {tab === "policy" && (
         <form
           className="workspace-card"
@@ -924,7 +988,8 @@ function WorkspaceBody({
           <h2>Connect {workspace.agent_id}</h2>
           <p>
             Use the agent key in the Authorization header. It can evaluate
-            requests; it cannot change policy, read history, or write failure
+            requests and check current authorization; it cannot change policy,
+            read history, or write failure
             evidence.
           </p>
           <pre className="workspace-code">{`const response = await fetch("${typeof window === "undefined" ? "" : window.location.origin}/api/workspace/evaluate", {
@@ -938,8 +1003,16 @@ function WorkspaceBody({
 });
 if (!response.ok) throw new Error("Stop: decision unavailable");
 const { receipt } = await response.json();
-if (receipt.decision !== "APPROVE") throw new Error(receipt.human_summary);
-if (Date.parse(receipt.expires_at) <= Date.now()) throw new Error("Decision expired");
+// For ESCALATE, pause and ask the owner to review in the console.
+// After review, use this same check; never treat ESCALATE as approval.
+const authorization = await fetch(
+  "${typeof window === "undefined" ? "" : window.location.origin}/api/workspace/decisions/" + receipt.receipt_id + "/authorization",
+  { headers: { "Authorization": "Bearer " + process.env.RECALLOPS_AGENT_KEY } }
+);
+if (!authorization.ok) throw new Error("Stop: authorization unavailable");
+const permit = await authorization.json();
+if (!permit.allowed_now) throw new Error(permit.reason_code);
+if (Date.parse(permit.expires_at) <= Date.now()) throw new Error("Decision expired");
 // Execute this exact action through your own application.
 // A decision does not reserve funds or execute a payment.`}</pre>
           <div className="workspace-section-head">

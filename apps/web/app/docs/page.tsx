@@ -85,6 +85,23 @@ export default function Docs() {
           owner key can record failures; agent keys cannot fabricate policy
           changes or alter failure history.
         </p>
+        <h2>5. Review high-risk actions</h2>
+        <p>
+          The owner can approve or reject an escalated request in Review queue,
+          with a required audit reason. Only HUMAN_APPROVAL_REQUIRED can receive
+          approval; missing evidence, denied requests, and expired receipts
+          cannot be overridden. A review expires with its original five-minute
+          receipt and does not rewrite that receipt.
+        </p>
+        <p>
+          Immediately before execution, call{" "}
+          <code>GET /api/workspace/decisions/RECEIPT_ID/authorization</code>{" "}
+          with the agent key. Proceed only when the HTTP response succeeds,{" "}
+          <code>allowed_now</code> is true, and <code>expires_at</code> is still
+          in the future. This rechecks current memory and access. A changed
+          policy, paused agent, newly recorded failure, or rejection blocks the
+          action even after owner approval. A new request needs its own review.
+        </p>
         <h2>API surface</h2>
         <div className="table-wrap">
           <table>
@@ -108,6 +125,16 @@ export default function Docs() {
                   "Owner · replaces agent key",
                 ],
                 ["POST", "/api/workspace/evaluate", "Agent or owner"],
+                [
+                  "POST",
+                  "/api/workspace/decisions/:id/review",
+                  "Owner · decision and reason",
+                ],
+                [
+                  "GET",
+                  "/api/workspace/decisions/:id/authorization",
+                  "Agent or owner · current permission",
+                ],
               ].map(([method, path, access]) => (
                 <tr key={method + path}>
                   <td>{method}</td>
@@ -138,8 +165,10 @@ export default function Docs() {
             immediately.
           </li>
           <li>
-            High-risk escalation requires review outside the console; there is
-            no one-click override that turns ESCALATE into approval.
+            Owner reviews are action-bound and expire with their receipt. The
+            authorization check does not dispatch a job or reserve funds; keep
+            the check and your executor close together and enforce your own
+            ledger.
           </li>
           <li>
             Failure evidence is retained. There is no failure deletion or

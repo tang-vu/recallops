@@ -32,6 +32,7 @@ from recallops.models import (
     PermissionGrant,
     ProposedAction,
     StoredMemory,
+    WorkspaceReview,
     utc_now,
 )
 
@@ -662,6 +663,35 @@ class SibylMemoryStore:
             return HumanApproval.model_validate(memory.body)
         except Exception as exc:
             raise MemorySubsystemError("Stored human approval is corrupt") from exc
+
+    def write_workspace_review(self, review: WorkspaceReview) -> None:
+        """Persist an owner decision without rewriting the original policy receipt."""
+        try:
+            # Audit must persist before the review becomes effective. A failed
+            # entity write can leave an audit attempt, never an unaudited permit.
+            self._client.write_event(
+                acted=[f"Owner {review.decision} review for receipt {review.receipt_id}"],
+                extra={
+                    "event_type": "WORKSPACE_REVIEW_RECORDED",
+                    "receipt_id": str(review.receipt_id),
+                    "review_id": str(review.review_id),
+                },
+            )
+            self._client.set_entity(
+                "workspace_review",
+                f"workspace-review:{review.receipt_id}",
+                review.model_dump(mode="json"),
+                status=review.decision.lower(),
+            )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to persist workspace review") from exc
+
+    def get_workspace_review(self, receipt_id: str) -> WorkspaceReview | None:
+        record = self._read_optional_entity("workspace_review", f"workspace-review:{receipt_id}")
+        try:
+            return WorkspaceReview.model_validate(record.body) if record is not None else None
+        except Exception as exc:
+            raise MemorySubsystemError("Stored workspace review is invalid") from exc
 
     def write_execution_authorization(
         self,

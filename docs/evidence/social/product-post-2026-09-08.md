@@ -33,7 +33,7 @@ Preserve the image styling. Session 1: Provider A / Dependency audit / FAILED /
 FAILURE SAVED. Session 2: Rehire Provider A / Same audit / RETRY DENIED. Remove
 the invented database-deletion example.
 
-## September 9 follow-up draft — not scheduled or published
+## September 9 follow-up draft (not scheduled or published)
 
 RecallOps remembers the audit failure your next agent session would otherwise forget.
 

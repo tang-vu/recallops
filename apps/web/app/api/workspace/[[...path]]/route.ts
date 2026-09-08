@@ -31,7 +31,17 @@ function setSession(response: NextResponse, key: string) {
 
 async function forward(request: NextRequest, context: Context) {
   const path = (await context.params).path?.join("/") ?? "";
-  if (!Object.hasOwn(ROUTES, path) || !ROUTES[path].includes(request.method))
+  const receiptRoute =
+    /^decisions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(review|authorization)$/.exec(
+      path,
+    );
+  const receiptAllowed =
+    receiptRoute &&
+    request.method === (receiptRoute[1] === "review" ? "POST" : "GET");
+  if (
+    !receiptAllowed &&
+    (!Object.hasOwn(ROUTES, path) || !ROUTES[path].includes(request.method))
+  )
     return reply({ detail: "Route not found." }, 404);
   // Cookie-authenticated writes require a same-origin browser request. API
   // clients must supply their bearer key explicitly.

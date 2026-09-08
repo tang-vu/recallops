@@ -30,6 +30,30 @@ seven days. Never expose the legacy FastAPI service directly to the Internet.
    fingerprint recalls the failure and changes the decision.
 6. Inspect/filter the latest 100 receipts and export individual JSON records.
 7. Pause access or rotate the agent key from the console.
+8. Review escalated high-risk actions in Review queue. An owner reason is required;
+   reviews persist in Sibyl and expire with the original five-minute receipt.
+9. Immediately before execution, the agent calls
+   `GET /api/workspace/decisions/{receipt_id}/authorization`. It must stop on a
+   non-2xx response, `allowed_now=false`, or expiry.
+
+## Owner review contract
+
+`POST /api/workspace/decisions/{receipt_id}/review` accepts an owner-authenticated
+JSON body with `decision` (`APPROVE` or `REJECT`) and `reason` (1–512 characters).
+Only an unexpired `ESCALATE` receipt can be reviewed. Approval requires exactly
+`HUMAN_APPROVAL_REQUIRED` in both the original receipt and a fresh memory check,
+with the same policy version. An existing review is final: identical retries
+return it; a changed verdict/reason receives 409. Reviews and their audit events
+use Sibyl; the original policy receipt is not changed.
+
+The authorization endpoint is available to agent and owner keys within the
+workspace. It re-reads current policy, permission, budget, failure, and review
+memory. Paused access, incomplete policy updates, changed policy versions,
+expired receipts, owner rejection, or new failing checks stop authorization.
+Both ordinary APPROVE receipts and owner-reviewed escalations need this check.
+`allowed_now` describes the check instant; it is not an execution token or a
+funds reservation. Clients must execute only the exact bound action and provide
+their own atomic spending enforcement.
 
 ## Boundaries
 
@@ -37,7 +61,8 @@ seven days. Never expose the legacy FastAPI service directly to the Internet.
   identity, credential hashes, rate counters, and an editable configuration
   snapshot. It is never a substitute for Sibyl at the decision boundary.
 - Owner identity, tenant, requesting agent, action ID, and action timestamp are
-  assigned by the server. Agent keys can only evaluate; owner keys control
+  assigned by the server. Agent keys can evaluate and check current authorization;
+  owner keys control
   policy, failure reports, history, and key rotation.
 - A registry write transaction serializes evaluations and key/config changes
   across worker processes. Identical concurrent evaluation retries return the
@@ -62,13 +87,14 @@ request to owner-reported spend. An application that needs a hard concurrent
 spending cap must enforce it in its own executor/ledger. This differs from the
 separately gated fixture/partner execution path retained in the demo.
 
-Clients must halt on non-2xx responses, network failures, DENY, ESCALATE, and
-expired receipts. An APPROVE receipt applies only to its exact proposed action.
+Clients must halt on non-2xx responses, network failures, DENY, and expired
+receipts. ESCALATE pauses execution until a scoped owner review and a successful
+current authorization check. An APPROVE receipt applies only to its exact proposed action.
 A replay is historical evidence, not a new check against a changed policy. Use
 a new action/key for a new intended attempt.
 
 This preview supports one owner credential and one agent per workspace. It does
-not include team accounts, email recovery, billing, a human-approval queue,
+not include team accounts, email recovery, billing,
 failure deletion, or high-availability storage. No automatic live deployment
 is performed by building these routes.
 
@@ -76,7 +102,8 @@ is performed by building these routes.
 
 `test_workspaces.py` exercises real Sibyl isolation and persistence, role
 boundaries, verified failure recall, policy/budget checks, key rotation, replay
-conflicts and concurrency, injected memory failures, interrupted policy recovery,
+conflicts and concurrency, durable owner reviews, authorization invalidation,
+injected memory failures, interrupted policy recovery,
 and durable creation limits. Playwright starts an isolated FastAPI instance with
 temporary workspace storage and exercises the real browser-to-Sibyl flow on
 desktop and mobile; the older demo scenario retains its network fixtures.

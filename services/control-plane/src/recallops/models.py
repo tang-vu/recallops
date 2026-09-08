@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -133,6 +133,19 @@ class HumanApproval(StrictModel):
     receipt_id: UUID
     approved_by: str = Field(min_length=1, max_length=128)
     reason: str = Field(min_length=1, max_length=512)
+    created_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime
+
+
+class WorkspaceReview(StrictModel):
+    review_id: UUID = Field(default_factory=uuid4)
+    tenant_id: str
+    action_id: UUID
+    receipt_id: UUID
+    decision: Literal["APPROVE", "REJECT"]
+    reason: str = Field(min_length=1, max_length=512)
+    reviewed_by: Literal["owner"] = "owner"
+    policy_version: str
     created_at: datetime = Field(default_factory=utc_now)
     expires_at: datetime
 

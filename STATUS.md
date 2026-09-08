@@ -1,11 +1,27 @@
 # RecallOps Status
 
-Last updated: 2026-09-07 UTC
+Last updated: 2026-09-09 (Asia/Saigon)
 
 ## Current milestone
 
 Developer workspace preview deployed at https://recallops.tangvu.dev.
 Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
+
+## Owner review queue / 2026-09-09
+
+- Owners can approve or reject escalated requests with a recorded reason. Reviews
+  persist through Sibyl, stay bound to the original action, and share its expiry.
+- Only `HUMAN_APPROVAL_REQUIRED` can receive approval. Missing verifiers, denials,
+  policy changes, new failures, and paused access cannot be overridden here.
+- The agent authorization endpoint re-reads current policy and memory. Historical
+  approval is not an execution guarantee, payment, or budget reservation.
+- Desktop/mobile review filters, evidence inspection, expiry handling, and current
+  authorization checks are implemented. Saved reviews update immediately without
+  waiting for a complete history reload.
+- Validation: 14 focused workspace tests passed; Ruff lint/format and strict mypy
+  passed on 44 files. Web lint/typecheck, 3 unit tests, production build, and all
+  8 browser tests passed (one worker locally). Both review layouts were inspected.
+- Submission video and final build-page readiness remain outstanding.
 
 ## Developer product preview / 2026-09-05
 

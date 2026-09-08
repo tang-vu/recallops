@@ -26,6 +26,7 @@ from recallops.memory.port import MemorySubsystemError
 from recallops.memory.sibyl_store import SibylMemoryStore
 from recallops.models import (
     BudgetAccount,
+    Decision,
     DecisionReceipt,
     EvaluationContext,
     FailureFingerprint,
@@ -35,6 +36,7 @@ from recallops.models import (
     PermissionGrant,
     ProposedAction,
     StrictModel,
+    WorkspaceReview,
     utc_now,
 )
 from recallops.orchestration.execution import request_digest
@@ -91,6 +93,11 @@ class FailureReport(StrictModel):
     task_fingerprint: str = Field(min_length=1, max_length=256)
     verifier_id: str = Field(min_length=1, max_length=128)
     verification_reason: str = Field(min_length=1, max_length=512)
+
+
+class ReviewRequest(StrictModel):
+    decision: Literal["APPROVE", "REJECT"]
+    reason: str = Field(min_length=1, max_length=512, pattern=r"\S")
 
 
 def digest_key(value: str) -> str:
@@ -184,6 +191,38 @@ def workspace_router(root: Path | None) -> APIRouter:
         # ID originates only from server-generated UUIDs, never a client path.
         workspace_id = str(UUID(row["id"]))
         return SibylMemoryStore(root / f"{workspace_id}.db", workspace_id)
+
+    def require_ready(db: sqlite3.Connection, row: sqlite3.Row) -> None:
+        if db.execute(
+            "SELECT 1 FROM policy_updates WHERE workspace_id = ?", (row["id"],)
+        ).fetchone():
+            raise HTTPException(503, "Policy update is incomplete. Save policy again.")
+        if not WorkspacePolicy.model_validate_json(row["config"]).agent_enabled:
+            raise HTTPException(403, "Agent access is paused by the workspace owner.")
+
+    def current_check(memory: SibylMemoryStore, action: ProposedAction) -> DecisionReceipt:
+        context = memory.load_evaluation_context(
+            owner_id=action.owner_id,
+            requesting_agent_id=action.requesting_agent_id,
+            provider_id=action.provider_id,
+            task_category=action.task_category,
+            task_fingerprint=action.task_fingerprint,
+            permission=action.permission,
+        )
+        return PolicyEngine().evaluate(
+            action.model_copy(update={"proposed_at": utc_now()}), context
+        )
+
+    def bound_action(
+        memory: SibylMemoryStore, receipt_id: UUID
+    ) -> tuple[DecisionReceipt, ProposedAction]:
+        receipt = memory.get_decision(str(receipt_id))
+        if receipt is None:
+            raise HTTPException(404, "Decision not found in this workspace.")
+        action = memory.get_proposed_action(str(receipt.action_id))
+        if action is None or action.tenant_id != receipt.tenant_id:
+            raise MemorySubsystemError("Receipt action is missing or inconsistent")
+        return receipt, action
 
     def write_config(row: sqlite3.Row | dict[str, str], config: WorkspacePolicy) -> None:
         now = utc_now()
@@ -326,12 +365,117 @@ def workspace_router(root: Path | None) -> APIRouter:
                 return [
                     {
                         "receipt": receipt.model_dump(mode="json"),
+                        "review": review.model_dump(mode="json")
+                        if (review := memory.get_workspace_review(str(receipt.receipt_id)))
+                        else None,
                         "action": action.model_dump(mode="json")
                         if (action := memory.get_proposed_action(str(receipt.action_id)))
                         else None,
                     }
                     for receipt in receipts
                 ]
+
+    @router.post("/decisions/{receipt_id}/review")
+    def review_decision(
+        receipt_id: UUID,
+        payload: ReviewRequest,
+        authorization: Annotated[str | None, Header()] = None,
+    ) -> dict[str, Any]:
+        with registry() as db:
+            row = authenticate(db, authorization)
+            with memory_for(row) as memory:
+                receipt, action = bound_action(memory, receipt_id)
+                existing = memory.get_workspace_review(str(receipt_id))
+                if existing is not None:
+                    if (
+                        existing.decision != payload.decision
+                        or existing.reason != payload.reason.strip()
+                    ):
+                        raise HTTPException(409, "This receipt already has a final owner review.")
+                    return {"review": existing.model_dump(mode="json"), "idempotent_replay": True}
+                if receipt.decision != Decision.ESCALATE:
+                    raise HTTPException(409, "Only escalated decisions enter owner review.")
+                if utc_now() >= receipt.expires_at:
+                    raise HTTPException(410, "Receipt expired. Submit a fresh request.")
+                if payload.decision == "APPROVE":
+                    require_ready(db, row)
+                    checked = current_check(memory, action)
+                    if receipt.reason_codes != ("HUMAN_APPROVAL_REQUIRED",):
+                        raise HTTPException(
+                            409, "Fix the missing evidence or policy condition and re-evaluate."
+                        )
+                    if checked.policy_version != receipt.policy_version:
+                        raise HTTPException(409, "Policy changed. Submit a fresh request.")
+                    if checked.reason_codes != ("HUMAN_APPROVAL_REQUIRED",):
+                        raise HTTPException(409, "Current memory no longer permits this approval.")
+                review = WorkspaceReview(
+                    tenant_id=row["id"],
+                    action_id=action.action_id,
+                    receipt_id=receipt_id,
+                    decision=payload.decision,
+                    reason=payload.reason.strip(),
+                    policy_version=receipt.policy_version,
+                    expires_at=receipt.expires_at,
+                )
+                if utc_now() >= receipt.expires_at:
+                    raise HTTPException(
+                        410, "Receipt expired during review. Submit a fresh request."
+                    )
+                memory.write_workspace_review(review)
+                return {"review": review.model_dump(mode="json"), "idempotent_replay": False}
+
+    @router.get("/decisions/{receipt_id}/authorization")
+    def check_authorization(
+        receipt_id: UUID,
+        authorization: Annotated[str | None, Header()] = None,
+    ) -> dict[str, Any]:
+        with registry() as db:
+            row = authenticate(db, authorization, owner=False)
+            require_ready(db, row)
+            with memory_for(row) as memory:
+                receipt, action = bound_action(memory, receipt_id)
+                review = memory.get_workspace_review(str(receipt_id))
+                allowed = False
+                reason = "RECEIPT_EXPIRED"
+                checked_at = utc_now()
+                if checked_at < receipt.expires_at:
+                    checked = current_check(memory, action)
+                    if receipt.decision == Decision.DENY:
+                        reason = "ORIGINAL_DECISION_DENIED"
+                    elif review and review.decision == "REJECT":
+                        reason = "OWNER_REJECTED"
+                    elif checked.policy_version != receipt.policy_version:
+                        reason = "POLICY_CHANGED"
+                    elif (
+                        receipt.decision == Decision.APPROVE
+                        and checked.decision == Decision.APPROVE
+                    ):
+                        allowed, reason = True, "CURRENT_POLICY_CHECKS_PASSED"
+                    elif (
+                        receipt.reason_codes == ("HUMAN_APPROVAL_REQUIRED",)
+                        and checked.reason_codes == ("HUMAN_APPROVAL_REQUIRED",)
+                        and review is not None
+                        and review.decision == "APPROVE"
+                        and review.action_id == action.action_id
+                        and review.tenant_id == row["id"]
+                        and review.policy_version == receipt.policy_version
+                        and checked_at < review.expires_at
+                    ):
+                        allowed, reason = True, "OWNER_APPROVED_CURRENT_POLICY_CHECKS_PASSED"
+                    else:
+                        reason = checked.reason_codes[0]
+                if utc_now() >= receipt.expires_at:
+                    allowed, reason = False, "RECEIPT_EXPIRED"
+                return {
+                    "allowed_now": allowed,
+                    "reason_code": reason,
+                    "receipt_id": str(receipt_id),
+                    "action_id": str(action.action_id),
+                    "checked_at": checked_at.isoformat(),
+                    "expires_at": receipt.expires_at.isoformat(),
+                    "review": review.model_dump(mode="json") if review else None,
+                    "note": "Current permission check only; no execution or funds reservation.",
+                }
 
     @router.post("/failures", status_code=201)
     def report_failure(

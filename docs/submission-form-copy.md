@@ -58,5 +58,5 @@ post. The demo-video post is still missing; two image posts do not replace it.
 - Mandatory read gate: `services/control-plane/src/recallops/orchestration/guard.py`
 - Deterministic decision engine: `services/control-plane/src/recallops/policy/engine.py`
 - Fresh-process test: `services/control-plane/tests/test_fresh_process.py`
-- Deletion proof: `scripts/deletion_test.py`
+- Deletion proof: `services/control-plane/src/recallops/benchmark/deletion.py`
 - Benchmark report: `benchmark/results/latest.md`

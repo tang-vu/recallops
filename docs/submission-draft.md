@@ -8,7 +8,7 @@ RecallOps: The Memory Gate That Stops Agents Repeating Expensive Mistakes
 
 ## Short description
 
-RecallOps is a memory-gated control plane for autonomous agent commerce. Before an agent hires a provider, spends budget, reuses a permission, or authorizes payment, RecallOps retrieves durable policy and outcome history from Sibyl Memory and returns an inspectable `APPROVE`, `DENY`, or `ESCALATE` receipt.
+RecallOps gives agent developers a private workspace for durable policy and failure memory. Before a proposed action, it recalls Sibyl state and returns an inspectable `APPROVE`, `DENY`, or `ESCALATE` receipt. Owners can review high-risk requests; agents recheck current authorization before execution.
 
 ## Submission description
 
@@ -16,13 +16,15 @@ Agent processes are disposable, but budgets, revocations, and failed counterpart
 
 In the deterministic two-process proof, Session 1 records Agent A's failed verification through Sibyl and terminates. Session 2 starts with a different PID and UUID, prefers Agent A because it is cheaper, recalls the earlier task-scoped failure, and denies the rehire. Agent B remains eligible. Every result contains reason codes, budget math, memory evidence, and a snapshot digest.
 
-The FastAPI control plane enforces decimal-safe limits, cumulative budgets, permissions, revocations, exceptions, probation, verification, action binding, expiry, and idempotency. The Next.js operations console makes the fresh-session consequence and exact evidence visible. A 12-scenario benchmark compares the production Sibyl path with an explicit stateless baseline, while the deletion test proves that disabling Sibyl stops production commerce.
+The developer product provides isolated Sibyl workspaces, separate owner and agent keys, editable policy, failure capture, decision history, and durable owner reviews. A review stays bound to its original action and expiry. Current authorization re-reads memory, so a new failure, changed policy, or paused agent can block a previously approved request. Spending checks use owner-reported spend; the integrating application retains responsibility for execution and atomic budget enforcement.
+
+The FastAPI control plane also implements permissions, revocations, exceptions, probation, verification, action binding, expiry, and idempotency. The Next.js console displays both fresh processes and their matching source-session evidence. A 12-scenario benchmark compares the production Sibyl path with an explicit stateless baseline, while the repository's deletion test proves that disabling required Sibyl reads stops production commerce.
 
 The repository also includes a guarded Virtuals ACP boundary and a digest-only Base receipt registry. Partner multipliers are claimed only if real public evidence is obtained before submission. Fixture ACP jobs and local Anvil transactions remain clearly labeled and are not presented as partner proof.
 
 ## Video description
 
-One durable Sibyl database. Two separate operating-system processes. Session 1 records a provider failure and exits. Session 2 recalls that outcome, blocks the cheaper unsafe repeat, and selects an allowed alternative. The demo then shows deterministic evidence receipts, execution gates, the 12-scenario benchmark, and the Sibyl deletion test.
+This continuous 2-minute-56-second recording shows the developer workspace, owner review, and current authorization flow, followed by two real operating-system processes using one durable Sibyl database. Session 1 records a provider failure and exits. Session 2 recalls that exact source session, denies Agent A, and approves Agent B. PID, UUID, UTC timestamp, and commit are visible. The recording closes with the deterministic benchmark and API guide. On-screen English captions explain the flow; there is no audio track. Deliverables and ACP dispatch are fixtures, with no live payment or partner transaction claimed.
 
 Repository: https://github.com/tang-vu/recallops
 

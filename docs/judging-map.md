@@ -1,20 +1,38 @@
 # Judging Map
 
-This map distinguishes implemented evidence from planned demo scenes. Partner claims remain unverified until public proof exists.
+The [published demo](https://x.com/tangvu_dev/status/2097381347782525063)
+runs 2:56. The approximate scene times below refer to that recording, not the
+older narration plan. [Recording evidence](evidence/demo-video-2026-09-09.md)
+contains exact process identities and artifact hashes.
 
-| Criterion | Product behavior | Source | Test | Demo scene | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| Load-bearing critical path | Mandatory Sibyl read precedes deterministic evaluation; mandatory receipt write precedes execution authorization | `memory/sibyl_store.py`, `orchestration/guard.py` | `test_fresh_process_recall_changes_economic_decision`, `test_memory_read_failure_escalates_and_stops_commerce` | 0:55 to 2:25 | Session JSON with PID, UUID, commit, writes, recall |
-| Fresh-process recall | Process B retrieves Process A's task-scoped Agent A failure | `demo/session1.py`, `demo/session2.py` | `test_fresh_process_recall_changes_economic_decision` | 1:35 to 2:25 | Local run recorded in `STATUS.md`; video pending |
-| All five memory tiers | HOT session, WARM policy/outcomes, COLD events, REFERENCE schema, ARCHIVE lifecycle history | `memory/sibyl_store.py` | `test_real_sibyl_round_trip_and_explicit_close`, `test_superseded_and_expired_permissions_move_to_sibyl_archive`, `test_retired_counterparty_is_archived_without_deleting_failure_history` | 0:55 to 1:35 | Structured list of successful Sibyl writes and archive integration tests |
-| Economic consequence | Matching verified failure changes Agent A to `DENY`; Agent B remains eligible | `policy/engine.py` | `test_matching_failure_changes_decision_to_deny` | 1:55 to 2:35 | Receipt reason codes and exact evidence body |
-| Dynamic policy | Revocation, exception, probation, verifier failure, and budgets alter later decisions | `policy/engine.py`, `orchestration/jobs.py`, `components/control-plane-dashboard.tsx` | `test_revoked_permission_is_a_hard_deny`, `test_valid_human_exception_can_cover_matching_failure`, `test_failed_verification_blocks_payment_and_updates_future_policy` | Decision evidence panel | Test report and live UI |
-| Deletion test | Disabled Sibyl returns fail-closed `ESCALATE`; explicit stateless comparator repeats the unsafe approval | `benchmark/deletion.py`, `benchmark/runner.py`, `scripts/deletion_test.sh` | `test_deletion_test_stops_production_and_exposes_unsafe_baseline`, 12-scenario benchmark test | 3:05 to 3:30 | `benchmark/results/deletion-test.json`, JSON/CSV/Markdown benchmark artifacts |
-| Deterministic authority | No LLM decides money or permissions | `policy/engine.py` | Policy unit suite | 0:25 to 0:55 | Source and OpenAPI receipt schema |
-| State safety | Idempotency, expiry, action binding, human approval, verifier-before-payment | `orchestration/execution.py`, `orchestration/jobs.py`, `components/control-plane-dashboard.tsx` | `test_evaluation_and_execution_are_durably_idempotent`, `test_failed_job_cannot_be_paid`, `shows a recalled failure changing the action decision` | Receipt execution panel with disabled DENY execution | HTTP integration and Playwright tests |
-| Tenant isolation | Same entity name cannot cross tenant boundary | `memory/sibyl_store.py` | `test_tenant_isolation_uses_sibyl_schema` | Optional evidence detail | Test report |
-| Security | Redaction, strict inputs, admin gate, safe reset, fail closed | `api/logging.py`, `api/app.py`, `demo/reset.py` | `test_secret_redaction_is_recursive`, `test_reset_rejects_paths_outside_exact_target`, API tests | Optional architecture cutaway | `docs/security-model.md` |
-| Originality | Economic consequences, task-scoped trust, evidence receipts | `README.md`, `docs/architecture.md` | Demonstrated across suite | First 25 seconds and close | Product narrative |
-| Virtuals multiplier | Policy-approved adapter can discover offerings, create a job, parse v2 history, and persist the job link; fixture proof is unmistakably labeled | `integrations/virtuals.py`, `integrations/preflight.py`, `orchestration/virtuals.py` | `test_live_adapter_uses_json_cli_without_a_shell_and_sanitizes_links`, `test_live_history_captures_deliverable_verification_and_payment_metadata`, `test_live_virtuals_never_dispatches_until_explicitly_enabled` | 2:25 to 3:05 | Real CLI reached `NO_ACTIVE_AGENT`; fixture evidence only, no live job and no claim yet |
-| Base multiplier | Digest-only registry can run only after approval, execution, and passed verification; live chain is separately gated | `packages/contracts/src/RecallOpsReceiptRegistry.sol`, `integrations/base.py`, `integrations/preflight.py`, `orchestration/base.py` | 13 Foundry tests including 512-case fuzz runs; `test_api_blocks_anchor_until_job_passes_then_persists_idempotently`; `test_preflight_reports_readiness_without_writes_or_signatures`; 3 viem tests | 2:50 to 3:05 | Public RPC read and no-broadcast simulation obtained; no Base Sepolia transaction and no multiplier claim yet |
-| Pitch | Operations console makes the fresh-session consequence inspectable without invented proof | `components/control-plane-dashboard.tsx`, `app/globals.css` | Playwright desktop and mobile presentation path | Full 3:30 target | UI verified locally; video pending human approval |
+| Criterion | Product behavior and source | Verification | Where to inspect |
+| --- | --- | --- | --- |
+| Load-bearing memory | `memory/sibyl_store.py` and `orchestration/guard.py` require Sibyl policy/outcome reads before evaluation and durable receipt writes before authorization | `test_fresh_process_recall_changes_economic_decision`, `test_memory_read_failure_escalates_and_stops_commerce` | Video 1:12 to 2:26; process results in `/demo` |
+| Fresh-process recall | `demo/session1.py` exits after writing; `demo/session2.py` opens the same durable database in another OS process | Backend fresh-process test and browser test `fresh process proof links two real backend processes` | Video 1:25 to 2:26 shows PIDs 61608/46704, different UUIDs, UTC timestamps, commit, and matching source |
+| Economic consequence | `policy/engine.py` denies Agent A after recalling its matching failure; Agent B remains eligible | `test_matching_failure_changes_decision_to_deny` | Video 1:47 to 2:26: `REPEATED_FAILURE_FINGERPRINT`, Agent A DENY, Agent B APPROVE |
+| Owner review | `api/workspaces.py` persists scoped reviews through Sibyl; current authorization re-reads memory | `test_owner_review_is_scoped_durable_and_requires_current_authorization`, `test_new_failure_invalidates_previously_approved_review` | Video 0:16 to 1:11; live `/workspace` review queue |
+| Policy and spending | Deterministic limits, permissions, revocations, exceptions, probation, verifier requirements, and expiry | Policy engine tests and workspace policy/pause/expiry tests | Workspace policy and API guide. Product spend is owner-reported; the application owns execution and atomic enforcement |
+| Memory tiers | HOT session, WARM policy/outcomes, COLD events, REFERENCE schema, ARCHIVE lifecycle history in `memory/sibyl_store.py` | Round-trip, permission archive, and counterparty retirement tests | Session 1 raw output lists writes. Archive lifecycle is tested in the repo and is not demonstrated in this video |
+| Deletion and benchmark | `benchmark/deletion.py` fails closed when required memory is disabled; `benchmark/runner.py` compares the explicit stateless path | `test_deletion_test_stops_production_and_exposes_unsafe_baseline` and benchmark tests | Video 2:26 to 2:41 shows persisted benchmark results. The deletion command itself is not run in the video; inspect `benchmark/results/deletion-test.json` |
+| Replay and execution safety | `orchestration/execution.py` and `orchestration/jobs.py` bind actions, expiry, idempotency, and verification-before-payment | Durable idempotency, denied execution, duplicate callback, and failed payment tests | Source/tests; the workspace video does not execute a payment |
+| Isolation and security | Separate workspace Sibyl databases, hashed role keys, strict request models, same-origin browser writes, redacted logs | Workspace isolation/role tests, gateway browser tests, logging and reset tests | [Workspace contract](developer-workspaces.md) and [security model](security-model.md) |
+| Presentation | Product home, owner review, paired process evidence, benchmark, API guide | Responsive browser tests and inspected video frames | Entire 2:56 captioned recording; no audio track |
+
+## Partner and PMF claims
+
+Base and Virtuals multipliers are **not claimed**. The repo retains a gated ACP
+adapter and digest-only Base registry with fixture/local tests. The video labels
+fixtures and does not contain a live ACP job, Base transaction, or payment.
+Public RPC reads, Anvil transactions, and simulations are not multiplier proof.
+
+No user count, interview, pilot, waitlist, revenue, or validated PMF claim is made.
+The benchmark is a deterministic test comparison, not a production outcome metric.
+
+## Submission links
+
+- [Public repository](https://github.com/tang-vu/recallops)
+- [Live product](https://recallops.tangvu.dev)
+- [September 8 build-log](https://x.com/tangvu_dev/status/2097309402600759522)
+- [September 9 demo video](https://x.com/tangvu_dev/status/2097381347782525063)
+
+The private build page has not been marked ready by this documentation update.

@@ -32,6 +32,7 @@ export default defineConfig({
         RECALLOPS_WORKSPACE_DIR: join(testData, "workspaces"),
         RECALLOPS_VIRTUALS_MODE: "FIXTURE MODE",
         RECALLOPS_BASE_MODE: "NOT CONFIGURED",
+        RECALLOPS_ADMIN_TOKEN: "browser-test-only-admin-token",
       },
       timeout: 120_000,
       reuseExistingServer: false,
@@ -41,7 +42,10 @@ export default defineConfig({
       url: "http://127.0.0.1:41789",
       reuseExistingServer: false,
       timeout: 120_000,
-      env: { RECALLOPS_API_URL: "http://127.0.0.1:41790" },
+      env: {
+        RECALLOPS_API_URL: "http://127.0.0.1:41790",
+        RECALLOPS_ADMIN_TOKEN: "browser-test-only-admin-token",
+      },
     },
   ],
 });

@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+.demo-proof { margin-top: 24px; border: 1px solid var(--line); padding: clamp(18px, 3vw, 32px); background: var(--panel); }
+.demo-proof-status { margin-bottom: 24px; }
+.demo-proof-status strong { color: var(--green); font-size: 22px; }
+.demo-proof-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.demo-proof-grid article { min-width: 0; }
+.demo-proof-grid h3 { font-size: 20px; margin: 12px 0 20px; }
+.demo-proof-grid dl { margin-bottom: 20px; }
+.demo-proof-grid dt { font-size: 12px; color: var(--muted); margin-top: 12px; }
+.demo-proof-grid dd { margin: 4px 0 0; font-size: 14px; overflow-wrap: anywhere; }
+.demo-proof-grid details { margin-top: 18px; }
+.demo-proof-grid summary { cursor: pointer; }
+.demo-proof-grid .demo-output { max-height: 360px; }
+.demo-proof-reason, .demo-proof-source { overflow-wrap: anywhere; }
+.demo-proof-reason { color: var(--red); font-family: var(--mono); }
+.demo-proof-source { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 24px; }
+@media (max-width: 800px) { .demo-proof-grid { grid-template-columns: 1fr; } }
+
 /* Public product and authenticated workspace share the memory console palette. */
 .product-shell { max-width: 1280px; margin: auto; padding: 0 clamp(20px, 4vw, 56px); }
 .product-nav { min-height: 100px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--line); }

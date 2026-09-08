@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
+import { DemoProof, type DemoResult } from "@/components/demo-proof";
 
 import { ApiError, apiRequest } from "@/lib/api";
 import { summarizeDecisions } from "@/lib/metrics";
@@ -51,7 +52,7 @@ export function ControlPlaneDashboard() {
   const [risk, setRisk] = useState("MEDIUM");
   const [receipt, setReceipt] = useState<DecisionReceipt | null>(null);
   const [executionNote, setExecutionNote] = useState<string | null>(null);
-  const [demoResult, setDemoResult] = useState<Record<string, unknown> | null>(null);
+  const [demoResults, setDemoResults] = useState<{ first?: DemoResult; second?: DemoResult }>({});
 
   const statusQuery = useQuery({
     queryKey: ["system-status"],
@@ -155,9 +156,15 @@ export function ControlPlaneDashboard() {
 
   const demoMutation = useMutation({
     mutationFn: (session: 1 | 2) =>
-      apiRequest<{ result: Record<string, unknown> }>(`v1/demo/session-${session}`, { method: "POST", body: "{}" }),
+      apiRequest<{ result: DemoResult }>(`v1/demo/session-${session}`, { method: "POST", body: "{}" }),
+    onMutate: (session) => {
+      if (session === 1) setDemoResults({});
+      else setDemoResults((previous) => ({ first: previous.first }));
+    },
     onSuccess: async ({ result }) => {
-      setDemoResult(result);
+      setDemoResults((previous) => result.demo_stage === "SESSION_1"
+        ? { first: result }
+        : { ...previous, second: result });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["decisions", TENANT_ID] }),
         queryClient.invalidateQueries({ queryKey: ["evidence", TENANT_ID] }),
@@ -329,7 +336,7 @@ export function ControlPlaneDashboard() {
             <div className="section-heading"><div><p className="eyebrow">PRESENTER CONTROLS / 08</p><h2 id="demo-title">Break the session, not the memory</h2></div><span className="mode-badge fixture">FIXTURE MODE / REAL SIBYL</span></div>
             <div className="demo-card"><div className="demo-index">01<span>/</span>02</div><div><h3>One durable database. Two operating-system processes.</h3><p>Session 1 writes Agent A&apos;s failed verification and exits. Session 2 starts with a new PID and UUID, recalls that failure, denies Agent A, and selects Agent B.</p></div><div className="button-row"><button className="secondary-button" disabled={demoMutation.isPending} onClick={() => demoMutation.mutate(1)}>Run Session 1</button><button className="primary-button" disabled={demoMutation.isPending} onClick={() => demoMutation.mutate(2)}>Run Session 2<span aria-hidden="true">→</span></button></div></div>
             {demoMutation.isError && <InlineUnavailable error={demoMutation.error} />}
-            {demoResult && <pre className="demo-output" aria-label="Latest demo process output">{JSON.stringify(demoResult, null, 2)}</pre>}
+            <DemoProof first={demoResults.first} second={demoResults.second} />
           </section>
         </div>
       </main>

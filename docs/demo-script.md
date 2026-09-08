@@ -2,6 +2,15 @@
 
 Target length: 3 minutes 30 seconds. Record the fresh-process sequence as one continuous, unedited segment. Do not display private credentials, wallet dialogs, email, or unpublished links.
 
+The current product recording is automated by
+[`scripts/record-demo.mjs`](../scripts/record-demo.mjs). It adds the private
+workspace and owner review flow before the fresh-process proof, then shows the
+benchmark and API guide. Its original WebM is continuous, with captions drawn
+during capture. The `/demo` presenter controls now retain both process results
+side by side, including PID, UUID, UTC time, commit, and the matching source
+session. Starting Session 1 again clears the old pair. The narration below is
+also available for a manually presented version.
+
 ## Preflight
 
 - Use the exact commit shown in the interface and terminal.

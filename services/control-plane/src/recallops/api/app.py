@@ -43,6 +43,7 @@ from recallops.api.schemas import (
     PolicyWriteRequest,
     SystemStatusResponse,
 )
+from recallops.api.workspaces import workspace_router
 from recallops.integrations.base import BaseAdapterError, BasePort, BaseViemAdapter
 from recallops.integrations.virtuals import (
     VirtualsFixtureAdapter,
@@ -730,6 +731,14 @@ def create_app(
         except (OSError, json.JSONDecodeError, ValidationError):
             return BenchmarkUnavailable(reason="The benchmark artifact failed validation.")
 
+    workspace_root = (
+        Path(os.environ["RECALLOPS_WORKSPACE_DIR"]).expanduser().resolve()
+        if os.getenv("RECALLOPS_WORKSPACE_DIR")
+        else configured_db.parent / "workspaces"
+        if configured_db is not None
+        else None
+    )
+    application.include_router(workspace_router(workspace_root))
     return application
 
 

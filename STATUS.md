@@ -1,10 +1,32 @@
 # RecallOps Status
 
-Last updated: 2026-09-04 UTC
+Last updated: 2026-09-07 UTC
 
 ## Current milestone
 
-Milestones 0 through 6 complete locally; human-controlled partner evidence and submission remain
+Developer workspace preview deployed at https://recallops.tangvu.dev.
+Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
+
+## Developer product preview / 2026-09-05
+
+Deployment update / 2026-09-07: rebuilt the production web bundle, stopped the
+RecallOps API/web for a consistent machine-local data backup, restarted both
+services with their existing environment, and saved PM2 state. Public browser
+checks created an isolated deployment-check workspace, evaluated a request to
+APPROVE through real Sibyl, and verified that the authenticated session survives
+reload. `/`, `/workspace`, `/docs`, `/demo`, and proxied health are available;
+unauthenticated workspace API reads return 401. No live jobs or payments were executed.
+
+- Added a public product home, private workspace console, API guide, and a dedicated `/demo` route.
+- Added self-service workspace creation with hashed owner/agent keys and isolated Sibyl databases.
+- Added owner policy/access editing, recorded-spend inputs, agent pause, and agent key rotation.
+- Added a real request playground, verified failure capture, searchable decision history, and receipt JSON export.
+- Added a bearer-authenticated gateway with server-assigned tenant/agent identity, role checks, request limits, durable rate counters, and same-origin cookie-write checks.
+- Added durable stop markers for interrupted policy updates and stable receipt recovery for interrupted idempotency writes.
+- Updated CI to run browser tests against an isolated real FastAPI/Sibyl backend; generated route types before clean-checkout TypeScript checks.
+- Validation: 66 backend tests passed before the final replay-recovery case; all 9 focused workspace tests then passed, including that new recovery case. Strict mypy passed on 44 files, Ruff lint/format passed, web lint/typecheck and 3 unit tests passed, the production build passed, and 6 browser tests passed across desktop/mobile. Product home and mobile policy screenshots were visually inspected.
+- The product gateway checks owner-reported spend and returns decisions. It does not reserve funds or execute payments. Team accounts, email recovery, billing, and an approval queue are not implemented.
+- No production restart, commit, push, or deployment was performed for this preview.
 
 ## Completed work
 
@@ -148,7 +170,7 @@ Milestones 0 through 6 complete locally; human-controlled partner evidence and s
 - ACP authentication has not been completed; the real CLI returns `NO_ACTIVE_AGENT` and no job exists.
 - Sibyl CLI 0.4.0 has a Windows-only credential-write failure after successful browser binding because it calls unavailable `os.fchmod`; the installed tool needed a platform guard that will be replaced by any future tool reinstall or update.
 - The healthy account's local credential label remains `FREE` while the server-authoritative tier is `STAKE` with an unlimited cap. No paid `sibyl upgrade` flow will be attempted merely to reconcile the local display label.
-- Rate limiting is not implemented in-process. The public preview exposes only the allowlisted Next.js proxy routes through Cloudflare, uses a fixture-only demo database, and keeps all live partner writes disabled.
+- The legacy demo routes do not have in-process rate limiting. The new workspace gateway has durable per-workspace request counters and an instance-wide creation cap. FastAPI remains loopback-only; live partner writes remain disabled.
 
 ## Live evidence obtained
 

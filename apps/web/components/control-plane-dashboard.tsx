@@ -188,6 +188,7 @@ export function ControlPlaneDashboard() {
           </span>
         </a>
         <nav>
+          <a href="/workspace"><span aria-hidden="true">↗</span>Your workspace</a>
           {NAV_ITEMS.map(([href, label], index) => (
             <a href={`#${href}`} key={href} className={index === 0 ? "active" : undefined}>
               <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
@@ -213,11 +214,14 @@ export function ControlPlaneDashboard() {
             <p className="eyebrow">ACTIVE CONTROL SURFACE</p>
             <h1><span>01</span> Procurement Agent <small>owned by vu-tang</small></h1>
           </div>
-          <div className="mode-row" aria-label="Integration modes">
+          <div className="mode-row" aria-label="System status">
             <span className={`gate-state ${connected ? "armed" : "halted"}`}><i aria-hidden="true" />{connected ? "GATE ARMED" : "GATE HALTED"}</span>
             <span className={`mode-badge ${connected ? "live" : "danger"}`}>SIBYL {connected ? "HEALTHY" : "UNAVAILABLE"}</span>
-            <span className="mode-badge fixture">{status?.virtuals_mode ?? "FIXTURE MODE"}</span>
-            <span className="mode-badge local">BASE {status?.base_mode ?? "NOT CONFIGURED"}</span>
+            {status?.fixture_data && (
+              <a className="mode-badge" href="#integrations" title="Sample commerce data. View integration details.">
+                Interactive demo · Sample data
+              </a>
+            )}
           </div>
         </header>
 

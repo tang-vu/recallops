@@ -16,6 +16,13 @@ RecallOps puts Sibyl Memory on the execution critical path. If mandatory memory 
 
 ## Product walkthrough
 
+The new [developer workspace preview](docs/developer-workspaces.md) provides
+private workspaces, owner/agent keys, editable policy and access, a request
+playground, verified failure capture, searchable decision history, and JSON
+receipt export. Start at `/workspace`; the sample scenario lives at `/demo`.
+The developer API evaluates requests against owner-reported spend; applications
+remain responsible for execution and atomic budget enforcement.
+
 1. An agent proposes a commerce action with a provider, task fingerprint, amount, permission, risk class, and verifier requirement.
 2. The control plane retrieves owner policy, budget history, counterparty outcomes, permissions, exceptions, and prior decisions from Sibyl Memory.
 3. A deterministic policy engine returns a receipt with reason codes and the exact memories that changed the result.

@@ -76,7 +76,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("shows a recalled failure changing the action decision", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/demo");
   await expect(page.getByText("SIBYL HEALTHY")).toBeVisible();
   await expect(page.getByText("12 SCENARIOS")).toBeVisible();
   await expect(page.getByText("100.00%").first()).toBeVisible();

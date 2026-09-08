@@ -79,6 +79,15 @@ jobs:
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
 
+      - name: Install uv for real workspace browser tests
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install workspace backend
+        run: uv sync --project services/control-plane --frozen --python 3.12
+
       - name: Type check
         run: npm --prefix apps/web run typecheck
 

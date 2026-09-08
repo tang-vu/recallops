@@ -1,6 +1,6 @@
 # RecallOps Web
 
-This Next.js application is the judge-facing operations console for RecallOps. It talks only to the FastAPI control plane through a same-origin, server-side route handler. The browser never receives a Sibyl database path or admin credential and never accesses Sibyl directly.
+This Next.js application includes the public product site, private developer workspace console, API guide, and the sample demo at `/demo`. Server-side route handlers connect it to the FastAPI control plane. The browser never receives a Sibyl database path or admin credential and never accesses Sibyl directly. See [developer workspaces](../../docs/developer-workspaces.md) for setup, key handling, and operating limits.
 
 ## Local setup
 
@@ -35,4 +35,4 @@ npm --prefix apps/web run build
 npm --prefix apps/web run test:e2e
 ```
 
-Playwright starts an isolated Next.js server on port 41789 and uses test-only network fixtures. The separate manual smoke test documented in `STATUS.md` exercises the real Next.js proxy, FastAPI API, and Sibyl database together.
+Playwright requires `uv` and the frozen Python dependencies. It starts isolated Next.js and FastAPI servers on ports 41789 and 41790, using temporary workspace databases. Workspace tests exercise real Sibyl; the sample demo test uses network fixtures.

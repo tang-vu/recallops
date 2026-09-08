@@ -1,0 +1,82 @@
+# Developer workspaces
+
+The developer preview adds a self-service decision gateway to the existing
+commerce demo. `/` is the product entry, `/workspace` is the private console,
+`/docs` is the integration guide, and `/demo` preserves the sample scenario.
+
+## Run locally
+
+Install the frozen Python dependencies with `uv sync --project services/control-plane --all-extras --frozen`
+and the web dependencies with `npm ci --prefix apps/web`. Configure
+`RECALLOPS_MEMORY_DB` to an absolute path on persistent local disk, start FastAPI
+on loopback, and point the web server's `RECALLOPS_API_URL` at it.
+
+Workspace files default to a `workspaces` sibling directory next to the demo
+database. `RECALLOPS_WORKSPACE_DIR` overrides that directory. Keep it outside Git
+on persistent storage. The public web server must use HTTPS in production;
+owner session cookies are Secure, HttpOnly, SameSite=Strict, and expire after
+seven days. Never expose the legacy FastAPI service directly to the Internet.
+
+## User flow
+
+1. Create a workspace with a name and one agent identifier.
+2. Save the owner recovery key and agent key. The server persists only SHA-256
+   hashes of 256-bit random keys; the UI shows plaintext keys only at issuance.
+3. Save policy, task scope, budget window, and recorded spend. Policy changes
+   use real Sibyl writes and retain superseded policy memory.
+4. Evaluate requests in the playground or call `POST /api/workspace/evaluate`
+   with a bearer key and an 8–128-character `Idempotency-Key`.
+5. Record a verified failure as owner. A later matching provider/category/task
+   fingerprint recalls the failure and changes the decision.
+6. Inspect/filter the latest 100 receipts and export individual JSON records.
+7. Pause access or rotate the agent key from the console.
+
+## Boundaries
+
+- Every workspace has its own UUID-named Sibyl database. The registry holds
+  identity, credential hashes, rate counters, and an editable configuration
+  snapshot. It is never a substitute for Sibyl at the decision boundary.
+- Owner identity, tenant, requesting agent, action ID, and action timestamp are
+  assigned by the server. Agent keys can only evaluate; owner keys control
+  policy, failure reports, history, and key rotation.
+- A registry write transaction serializes evaluations and key/config changes
+  across worker processes. Identical concurrent evaluation retries return the
+  same durable receipt; a different body under the same key receives 409.
+- Policy updates touch several Sibyl records. Before an update, a stop marker
+  is committed to the registry. If the process stops or a write fails, evaluation
+  remains unavailable until the owner successfully saves the policy again.
+- Browser writes require a matching Origin/Host or an explicit bearer key.
+  The public gateway streams request bodies with a 16 KiB cap and does not
+  forward user-selected upstream paths or tenant IDs.
+- The initial service cap is 10 workspace creations per UTC hour per instance
+  and 120 successful authenticated requests per UTC minute per workspace.
+- Back up the whole workspace directory consistently while the API is stopped,
+  including the identity registry and every Sibyl database. Losing the registry
+  loses key associations. Losing Sibyl removes required decision evidence.
+
+## Preview limits
+
+The product gateway evaluates requests; it does not dispatch jobs, reserve
+budgets, sign transactions, or reconcile payments. Spending checks compare the
+request to owner-reported spend. An application that needs a hard concurrent
+spending cap must enforce it in its own executor/ledger. This differs from the
+separately gated fixture/partner execution path retained in the demo.
+
+Clients must halt on non-2xx responses, network failures, DENY, ESCALATE, and
+expired receipts. An APPROVE receipt applies only to its exact proposed action.
+A replay is historical evidence, not a new check against a changed policy. Use
+a new action/key for a new intended attempt.
+
+This preview supports one owner credential and one agent per workspace. It does
+not include team accounts, email recovery, billing, a human-approval queue,
+failure deletion, or high-availability storage. No automatic live deployment
+is performed by building these routes.
+
+## Validation
+
+`test_workspaces.py` exercises real Sibyl isolation and persistence, role
+boundaries, verified failure recall, policy/budget checks, key rotation, replay
+conflicts and concurrency, injected memory failures, interrupted policy recovery,
+and durable creation limits. Playwright starts an isolated FastAPI instance with
+temporary workspace storage and exercises the real browser-to-Sibyl flow on
+desktop and mobile; the older demo scenario retains its network fixtures.

@@ -7,8 +7,8 @@ Target length: 3 minutes 30 seconds. Record the fresh-process sequence as one co
 - Use the exact commit shown in the interface and terminal.
 - Run `make check`, `make benchmark`, and `make deletion-test` before recording.
 - Reset only the validated demo database with `make demo-reset`.
-- Keep `FIXTURE MODE` visible unless a real Virtuals job has been independently verified.
-- Keep Base labeled `NOT CONFIGURED` or `LOCAL ANVIL` unless a public Base Sepolia transaction exists.
+- Keep `Interactive demo · Sample data` visible in the header when using fixtures; the Integration proof section retains the explicit `FIXTURE MODE` label.
+- Keep Base labeled `NOT CONFIGURED` or `LOCAL ANVIL` in Integration proof unless a public Base Sepolia transaction exists.
 - Never claim either partner multiplier from fixture or Anvil evidence.
 
 ## 0:00 to 0:25 - The problem

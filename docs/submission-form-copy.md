@@ -37,7 +37,15 @@ Do not select `semantic search`, `temporal / time-travel`, `summarization`, `ref
 https://x.com/tangvu_dev/status/2095872903506215334
 ```
 
-One of the two required build-in-public posts is now published. Add a second real URL only after that post exists.
+New product build-log published on 2026-09-08 with both `@sibylcap` and
+`@sibyl_labs_` tags:
+
+```text
+https://x.com/tangvu_dev/status/2097309402600759522
+```
+
+The current submission pair should use this build-log and a future demo-video
+post. The demo-video post is still missing; two image posts do not replace it.
 
 ## Fields that must remain empty for now
 

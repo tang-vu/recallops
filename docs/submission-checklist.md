@@ -21,7 +21,7 @@ This file prepares evidence but does not authorize submission, publication, uplo
 - [x] Missing or failed memory returns `ESCALATE` and stops commerce.
 - [x] Twelve-scenario benchmark artifacts exist in JSON, CSV, and Markdown.
 - [x] Deletion test passes.
-- [ ] Record the required continuous, unedited fresh-process video segment.
+- [x] Record the required continuous, unedited fresh-process video segment; local artifact and process evidence are in [the recording note](evidence/demo-video-2026-09-09.md).
 
 ## Product and quality
 
@@ -31,7 +31,7 @@ This file prepares evidence but does not authorize submission, publication, uplo
 - [x] Local Anvil contract and viem interaction are verified.
 - [x] Run every `make check` component locally and in GitHub CI; exact results are recorded in `STATUS.md`.
 - [x] Verify every local documentation link from a clean clone.
-- [ ] Verify the video is 2 to 5 minutes and readable at normal playback speed.
+- [x] Verify the video is 2 to 5 minutes and readable at normal playback speed (176.12 seconds, inspected process/source frames, on-screen captions).
 
 ## Partner evidence
 

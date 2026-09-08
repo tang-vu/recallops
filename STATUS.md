@@ -7,6 +7,23 @@ Last updated: 2026-09-09 (Asia/Saigon)
 Developer workspace preview deployed at https://recallops.tangvu.dev.
 Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
 
+## Continuous submission demo / 2026-09-09
+
+- Deployed a paired fresh-process evidence view: both PIDs, UUIDs, UTC times,
+  commits, decisions, and the matching failure source remain visible. A new
+  Session 1 clears the preceding pair.
+- Added a reproducible continuous browser recorder with on-screen captions and
+  private pre-recording authentication. It does not reset demo data or publish.
+- Recorded and inspected a 176.12-second MP4 from the public deployment, showing
+  workspace review followed by actual cross-process Sibyl recall. The recording
+  contains distinct PIDs 61608 and 46704 with a verified Session 1 source link.
+- [Recording evidence](docs/evidence/demo-video-2026-09-09.md) records the local
+  artifact, hashes, process identities, and claim boundaries. Video publication,
+  the demo-video post, and final submission remain outstanding.
+- UI release `0595364` and recorder correction `4bd74dc` were committed and
+  pushed. Their GitHub CI runs passed. The UI release passed 72 backend tests,
+  9 browser tests, all configured builds/lints, and dependency checks.
+
 ## Owner review queue / 2026-09-09
 
 - Owners can approve or reject escalated requests with a recorded reason. Reviews

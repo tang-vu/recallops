@@ -102,6 +102,9 @@ try {
   await proof.getByText("Fresh-process recall verified", { exact: true }).waitFor();
   await proof.scrollIntoViewIfNeeded();
   await caption("Session 2 has a different PID and UUID. It recalls the failure written by Session 1. That exact source session is linked below: memory changes Agent A to DENY.", 22);
+  await proof.locator(".demo-proof-source").evaluate((element) =>
+    element.scrollIntoView({ block: "center", behavior: "instant" }),
+  );
   await caption("Agent B remains eligible and receives APPROVE. This is real Sibyl persistence across process exits. The fixture job is not evidence of a live Virtuals job or Base transaction.", 16);
 
   await page.locator("#benchmark").scrollIntoViewIfNeeded();

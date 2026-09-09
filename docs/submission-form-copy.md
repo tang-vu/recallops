@@ -60,6 +60,15 @@ https://x.com/tangvu_dev/status/2097381347782525063
 Use the September 8 build-log and September 9 demo-video post as the submission
 pair. The September 9 post is also the public demo-video URL.
 
+Additional product update, published and verified after receipt revocation shipped:
+
+```text
+https://x.com/tangvu_dev/status/2097713301811839264
+```
+
+This optional extra post is recorded here for the builder's final review; it
+has not been appended to the private build page.
+
 ## Fields that must remain empty for now
 
 - Ready for judging: must remain unmarked until the final human truth review and explicit approval.

@@ -8,7 +8,7 @@ RecallOps: The Memory Gate That Stops Agents Repeating Expensive Mistakes
 
 ## Short description
 
-RecallOps gives agent developers a private workspace for durable policy and failure memory. Before a proposed action, it recalls Sibyl state and returns an inspectable `APPROVE`, `DENY`, or `ESCALATE` receipt. Owners can review high-risk requests; agents recheck current authorization before execution.
+RecallOps gives agent developers a private workspace for durable policy and failure memory. Before a proposed action, it recalls Sibyl state and returns an inspectable `APPROVE`, `DENY`, or `ESCALATE` receipt. Owners can review high-risk requests and revoke individual receipts; agents recheck current authorization before execution.
 
 ## Submission description
 
@@ -16,7 +16,7 @@ Agent processes are disposable, but budgets, revocations, and failed counterpart
 
 In the deterministic two-process proof, Session 1 records Agent A's failed verification through Sibyl and terminates. Session 2 starts with a different PID and UUID, prefers Agent A because it is cheaper, recalls the earlier task-scoped failure, and denies the rehire. Agent B remains eligible. Every result contains reason codes, budget math, memory evidence, and a snapshot digest.
 
-The developer product provides isolated Sibyl workspaces, separate owner and agent keys, editable policy, failure capture, decision history, and durable owner reviews. A review stays bound to its original action and expiry. Current authorization re-reads memory, so a new failure, changed policy, or paused agent can block a previously approved request. Spending checks use owner-reported spend; the integrating application retains responsibility for execution and atomic budget enforcement.
+The developer product provides isolated Sibyl workspaces, separate owner and agent keys, editable policy, failure capture, decision history, and durable owner reviews. A review stays bound to its original action and expiry. Owners can revoke a single receipt with a reason saved in Sibyl, preserving the original decision and other receipts. Current authorization re-reads memory, so revocation, a new failure, changed policy, or paused agent can block a previously approved request. Revocation cannot undo completed execution or block a separately evaluated new request. Spending checks use owner-reported spend; the integrating application retains responsibility for execution and atomic budget enforcement.
 
 The FastAPI control plane also implements permissions, revocations, exceptions, probation, verification, action binding, expiry, and idempotency. The Next.js console displays both fresh processes and their matching source-session evidence. A 12-scenario benchmark compares the production Sibyl path with an explicit stateless baseline, while the repository's deletion test proves that disabling required Sibyl reads stops production commerce.
 

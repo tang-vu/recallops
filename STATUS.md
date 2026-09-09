@@ -22,6 +22,14 @@ Hackathon milestones 0 through 6 remain complete; live partner evidence is uncha
   web type/lint checks, and 3 web unit tests passed. Browser suite passed 11 cases
   with the duplicate mobile demo writer skipped; both revocation viewport cases
   passed again after the final history layout adjustment.
+- Deployed commit `8469fdf`; all three GitHub CI jobs passed. Public browser
+  and agent API verification confirmed a durable revocation blocks its receipt
+  while another receipt remains eligible. See [release evidence](docs/evidence/receipt-revocation-2026-09-09.md).
+- Published and independently verified the additional product post:
+  https://x.com/tangvu_dev/status/2097713301811839264. The attached image shows
+  the real deployment. [Publication evidence](docs/evidence/social/revocation-post-2026-09-09.md).
+- Updated submission descriptions for receipt revocation. The builder will
+  review and finalize submission; Ready remains under the builder's control.
 
 ## Private build-page preparation / 2026-09-09
 

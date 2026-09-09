@@ -102,6 +102,25 @@ export default function Docs() {
           policy, paused agent, newly recorded failure, or rejection blocks the
           action even after owner approval. A new request needs its own review.
         </p>
+        <h2>6. Revoke one receipt</h2>
+        <p>
+          Open a request in Decision history and revoke it with a reason. The
+          owner API is{" "}
+          <code>POST /api/workspace/decisions/RECEIPT_ID/revoke</code> with{" "}
+          <code>{'{"reason":"The job was canceled"}'}</code>. A successful
+          revocation is permanent for that receipt: current authorization
+          returns
+          <code> RECEIPT_REVOKED</code>, even if it was previously approved.
+          Other requests remain eligible, and the original receipt stays in
+          history.
+        </p>
+        <p>
+          Revocation takes effect at the next authorization check. It cannot
+          undo completed work or block a different, freshly evaluated request.
+          Use policy restrictions or pause the agent for a broader stop. On a
+          failed revocation request, do not assume it was saved: check again or
+          pause access.
+        </p>
         <h2>API surface</h2>
         <div className="table-wrap">
           <table>
@@ -134,6 +153,11 @@ export default function Docs() {
                   "GET",
                   "/api/workspace/decisions/:id/authorization",
                   "Agent or owner · current permission",
+                ],
+                [
+                  "POST",
+                  "/api/workspace/decisions/:id/revoke",
+                  "Owner · permanent receipt stop",
                 ],
               ].map(([method, path, access]) => (
                 <tr key={method + path}>

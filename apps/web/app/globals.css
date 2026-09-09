@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+.receipt-controls { border-top: 1px solid var(--line); margin: 24px 0; padding-top: 24px; }
+.receipt-controls form { display: grid; gap: 14px; margin-top: 24px; }
+.receipt-controls form button { justify-self: start; }
+.revocation-record { border-left: 3px solid var(--red); padding: 16px 20px; margin: 20px 0; background: var(--surface); }
+.revocation-record > strong { color: var(--red); }
+
 .demo-proof { margin-top: 24px; border: 1px solid var(--line); padding: clamp(18px, 3vw, 32px); background: var(--panel); }
 .demo-proof-status { margin-bottom: 24px; }
 .demo-proof-status strong { color: var(--green); font-size: 22px; }

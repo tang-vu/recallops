@@ -5,6 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 import type { DecisionReceipt } from "@/lib/types";
 import {
+  ReceiptControls,
+  type ReceiptRevocation,
+} from "@/components/receipt-controls";
+import {
   ReviewQueue,
   type AuthorizationCheck,
   type OwnerReview,
@@ -47,6 +51,7 @@ type History = {
   receipt: DecisionReceipt;
   action: Action | null;
   review?: OwnerReview | null;
+  revocation?: ReceiptRevocation | null;
 };
 class WorkspaceError extends Error {
   constructor(
@@ -851,9 +856,9 @@ function WorkspaceBody({
                     <details key={item.receipt.receipt_id}>
                       <summary>
                         <span
-                          className={`workspace-verdict ${item.receipt.decision.toLowerCase()}`}
+                          className={`workspace-verdict ${item.revocation ? "deny" : item.receipt.decision.toLowerCase()}`}
                         >
-                          {item.receipt.decision}
+                          {item.revocation ? "REVOKED" : item.receipt.decision}
                         </span>
                         <strong>
                           {item.action?.provider_id ?? "Unknown provider"}
@@ -868,7 +873,60 @@ function WorkspaceBody({
                         {item.action?.requested_amount} {item.action?.currency}
                       </p>
                       <code>{item.action?.task_fingerprint}</code>
-                      <Verdict receipt={item.receipt} />
+                      {item.receipt.decision !== "DENY" && (
+                        <ReceiptControls
+                          expiresAt={item.receipt.expires_at}
+                          revocation={item.revocation}
+                          busy={busy}
+                          check={checks[item.receipt.receipt_id]}
+                          onCheck={() =>
+                            void perform(async () => {
+                              const id = item.receipt.receipt_id;
+                              const result = await api<AuthorizationCheck>(
+                                `/decisions/${id}/authorization`,
+                              );
+                              setChecks((previous) => ({
+                                ...previous,
+                                [id]: result,
+                              }));
+                            })
+                          }
+                          onRevoke={(reason) =>
+                            void perform(async () => {
+                              const id = item.receipt.receipt_id;
+                              await queryClient.cancelQueries({
+                                queryKey: ["workspace-history", workspace.id],
+                              });
+                              const saved = await api<{
+                                revocation: ReceiptRevocation;
+                              }>(`/decisions/${id}/revoke`, "POST", { reason });
+                              queryClient.setQueryData<History[]>(
+                                ["workspace-history", workspace.id],
+                                (previous) =>
+                                  previous?.map((entry) =>
+                                    entry.receipt.receipt_id === id
+                                      ? {
+                                          ...entry,
+                                          revocation: saved.revocation,
+                                        }
+                                      : entry,
+                                  ),
+                              );
+                              setChecks((previous) => {
+                                const next = { ...previous };
+                                delete next[id];
+                                return next;
+                              });
+                            }, "Receipt revoked. Other requests are unchanged.")
+                          }
+                        />
+                      )}
+                      <details>
+                        <summary>
+                          Original evaluation · {item.receipt.decision}
+                        </summary>
+                        <Verdict receipt={item.receipt} />
+                      </details>
                       <button
                         className="quiet-button"
                         onClick={() => {
@@ -989,8 +1047,7 @@ function WorkspaceBody({
           <p>
             Use the agent key in the Authorization header. It can evaluate
             requests and check current authorization; it cannot change policy,
-            read history, or write failure
-            evidence.
+            read history, or write failure evidence.
           </p>
           <pre className="workspace-code">{`const response = await fetch("${typeof window === "undefined" ? "" : window.location.origin}/api/workspace/evaluate", {
   method: "POST",

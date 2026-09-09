@@ -150,6 +150,16 @@ class WorkspaceReview(StrictModel):
     expires_at: datetime
 
 
+class WorkspaceRevocation(StrictModel):
+    revocation_id: UUID = Field(default_factory=uuid4)
+    tenant_id: str
+    action_id: UUID
+    receipt_id: UUID
+    reason: str = Field(min_length=1, max_length=512)
+    revoked_by: Literal["owner"] = "owner"
+    created_at: datetime = Field(default_factory=utc_now)
+
+
 class ProposedAction(StrictModel):
     action_id: UUID = Field(default_factory=uuid4)
     tenant_id: str = Field(min_length=1, max_length=128)

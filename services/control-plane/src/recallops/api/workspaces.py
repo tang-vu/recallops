@@ -37,6 +37,7 @@ from recallops.models import (
     ProposedAction,
     StrictModel,
     WorkspaceReview,
+    WorkspaceRevocation,
     utc_now,
 )
 from recallops.orchestration.execution import request_digest
@@ -93,6 +94,10 @@ class FailureReport(StrictModel):
     task_fingerprint: str = Field(min_length=1, max_length=256)
     verifier_id: str = Field(min_length=1, max_length=128)
     verification_reason: str = Field(min_length=1, max_length=512)
+
+
+class RevocationRequest(StrictModel):
+    reason: str = Field(min_length=1, max_length=512, pattern=r"\S")
 
 
 class ReviewRequest(StrictModel):
@@ -365,6 +370,9 @@ def workspace_router(root: Path | None) -> APIRouter:
                 return [
                     {
                         "receipt": receipt.model_dump(mode="json"),
+                        "revocation": revocation.model_dump(mode="json")
+                        if (revocation := memory.get_workspace_revocation(str(receipt.receipt_id)))
+                        else None,
                         "review": review.model_dump(mode="json")
                         if (review := memory.get_workspace_review(str(receipt.receipt_id)))
                         else None,
@@ -374,6 +382,36 @@ def workspace_router(root: Path | None) -> APIRouter:
                     }
                     for receipt in receipts
                 ]
+
+    @router.post("/decisions/{receipt_id}/revoke")
+    def revoke_receipt(
+        receipt_id: UUID,
+        payload: RevocationRequest,
+        authorization: Annotated[str | None, Header()] = None,
+    ) -> dict[str, Any]:
+        with registry() as db:
+            row = authenticate(db, authorization)
+            with memory_for(row) as memory:
+                _, action = bound_action(memory, receipt_id)
+                existing = memory.get_workspace_revocation(str(receipt_id))
+                if existing:
+                    if existing.reason != payload.reason.strip():
+                        raise HTTPException(409, "This receipt already has a recorded revocation.")
+                    return {
+                        "revocation": existing.model_dump(mode="json"),
+                        "idempotent_replay": True,
+                    }
+                revocation = WorkspaceRevocation(
+                    tenant_id=row["id"],
+                    action_id=action.action_id,
+                    receipt_id=receipt_id,
+                    reason=payload.reason.strip(),
+                )
+                memory.write_workspace_revocation(revocation)
+                return {
+                    "revocation": revocation.model_dump(mode="json"),
+                    "idempotent_replay": False,
+                }
 
     @router.post("/decisions/{receipt_id}/review")
     def review_decision(
@@ -385,6 +423,10 @@ def workspace_router(root: Path | None) -> APIRouter:
             row = authenticate(db, authorization)
             with memory_for(row) as memory:
                 receipt, action = bound_action(memory, receipt_id)
+                if payload.decision == "APPROVE" and memory.get_workspace_revocation(
+                    str(receipt_id)
+                ):
+                    raise HTTPException(409, "This receipt was revoked. Submit a fresh request.")
                 existing = memory.get_workspace_review(str(receipt_id))
                 if existing is not None:
                     if (
@@ -435,10 +477,13 @@ def workspace_router(root: Path | None) -> APIRouter:
             with memory_for(row) as memory:
                 receipt, action = bound_action(memory, receipt_id)
                 review = memory.get_workspace_review(str(receipt_id))
+                revocation = memory.get_workspace_revocation(str(receipt_id))
                 allowed = False
                 reason = "RECEIPT_EXPIRED"
                 checked_at = utc_now()
-                if checked_at < receipt.expires_at:
+                if revocation:
+                    reason = "RECEIPT_REVOKED"
+                elif checked_at < receipt.expires_at:
                     checked = current_check(memory, action)
                     if receipt.decision == Decision.DENY:
                         reason = "ORIGINAL_DECISION_DENIED"
@@ -474,6 +519,7 @@ def workspace_router(root: Path | None) -> APIRouter:
                     "checked_at": checked_at.isoformat(),
                     "expires_at": receipt.expires_at.isoformat(),
                     "review": review.model_dump(mode="json") if review else None,
+                    "revocation": revocation.model_dump(mode="json") if revocation else None,
                     "note": "Current permission check only; no execution or funds reservation.",
                 }
 

@@ -7,6 +7,22 @@ Last updated: 2026-09-09 (Asia/Saigon)
 Developer workspace preview deployed at https://recallops.tangvu.dev.
 Hackathon milestones 0 through 6 remain complete; live partner evidence is unchanged.
 
+## Per-receipt revocation / 2026-09-09
+
+- Owners can permanently revoke one receipt with an audit reason saved through
+  Sibyl. The original decision and any review remain in history and JSON export.
+- Current authorization blocks revoked receipts. Agents cannot revoke, other
+  workspaces cannot access the receipt, and unrelated receipts remain eligible.
+- Replays retain historical receipts; they do not undo revocation. New policy
+  saves and pause/resume do not reinstate a revoked receipt. A fresh evaluation
+  is separate; broad stops still require policy restrictions or pausing access.
+- Decision history shows current authorization controls before the original
+  evaluation. Review queue exposes revoked requests without offering approval.
+- Validation: 75 backend tests, 17 focused workspace tests, strict mypy, Ruff,
+  web type/lint checks, and 3 web unit tests passed. Browser suite passed 11 cases
+  with the duplicate mobile demo writer skipped; both revocation viewport cases
+  passed again after the final history layout adjustment.
+
 ## Private build-page preparation / 2026-09-09
 
 - Recovered the existing registration link via connected Gmail and saved the

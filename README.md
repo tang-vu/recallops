@@ -21,8 +21,10 @@ private workspaces, owner/agent keys, editable policy and access, a request
 playground, verified failure capture, searchable decision history, JSON receipt
 export, and an owner review queue for escalated requests. Reviews persist in
 Sibyl and expire with the original receipt. Agents must check current
-authorization before execution; a new failure, changed policy, or paused agent
-can block a previously approved request. Start at `/workspace`; the sample
+authorization before execution; a new failure, changed policy, paused agent,
+or owner revocation of that receipt can block a previously approved request.
+Receipt revocation keeps its reason and original decision in history while
+leaving other requests independently eligible. Start at `/workspace`; the sample
 scenario lives at `/demo`.
 The developer API evaluates requests against owner-reported spend; applications
 remain responsible for execution and atomic budget enforcement.

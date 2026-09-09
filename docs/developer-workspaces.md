@@ -79,6 +79,29 @@ their own atomic spending enforcement.
   including the identity registry and every Sibyl database. Losing the registry
   loses key associations. Losing Sibyl removes required decision evidence.
 
+## Revoking a single receipt
+
+An owner can open a request in Decision history and choose **Revoke this
+receipt**, with a required reason. The API is
+`POST /api/workspace/decisions/:receipt_id/revoke` with a JSON `reason`.
+Agent keys cannot call it. The original policy receipt and any owner review
+remain unchanged; a separate Sibyl entity retains the revocation, owner role,
+action/receipt binding, reason, and timestamp.
+
+Once successfully saved, the revocation cannot be removed. An identical retry
+returns the same record; a different reason returns 409 rather than rewriting
+history. Current authorization returns `allowed_now: false` with
+`RECEIPT_REVOKED` for an unexpired revoked receipt, including after a policy
+update or agent pause/resume. Replaying the original evaluation still returns
+its historical receipt; it does not restore authorization.
+
+Other receipts remain independently eligible. This stops one receipt at the
+next authorization check, not an already running job or a different fresh
+request. Broader stops belong in policy restrictions or the agent pause control.
+If the revoke request fails, do not assume it saved: verify authorization or
+pause access. Revocations are included in history JSON exports. Missing or
+unreadable revocation state fails closed at the authorization boundary.
+
 ## Preview limits
 
 The product gateway evaluates requests; it does not dispatch jobs, reserve

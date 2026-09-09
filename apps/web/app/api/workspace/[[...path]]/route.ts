@@ -32,12 +32,12 @@ function setSession(response: NextResponse, key: string) {
 async function forward(request: NextRequest, context: Context) {
   const path = (await context.params).path?.join("/") ?? "";
   const receiptRoute =
-    /^decisions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(review|authorization)$/.exec(
+    /^decisions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(review|revoke|authorization)$/.exec(
       path,
     );
   const receiptAllowed =
     receiptRoute &&
-    request.method === (receiptRoute[1] === "review" ? "POST" : "GET");
+    request.method === (receiptRoute[1] === "authorization" ? "GET" : "POST");
   if (
     !receiptAllowed &&
     (!Object.hasOwn(ROUTES, path) || !ROUTES[path].includes(request.method))

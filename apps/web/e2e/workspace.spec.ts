@@ -1,5 +1,93 @@
 import { expect, test } from "@playwright/test";
 
+test("owner revokes one approved receipt while another remains eligible", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90_000);
+  await page.goto("/workspace");
+  await page.getByLabel("Workspace name").fill("Receipt control check");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await page.getByRole("button", { name: /saved my keys/ }).click();
+  const action = {
+    provider_id: "receipt-provider",
+    offering: "Dependency audit",
+    task_category: "security-review",
+    task_fingerprint: "revoke:first",
+    requested_amount: "1.00",
+    currency: "USDC",
+    chain: "base-sepolia",
+    permission: "hire-agent",
+    required_verifier: "checker",
+    risk_class: "LOW",
+  };
+  const evaluate = async (fingerprint: string) => {
+    const response = await page.request.post("/api/workspace/evaluate", {
+      headers: {
+        Origin: new URL(page.url()).origin,
+        "Idempotency-Key": fingerprint,
+      },
+      data: { ...action, task_fingerprint: fingerprint },
+    });
+    expect(response.ok()).toBe(true);
+    return (await response.json()).receipt;
+  };
+  const first = await evaluate("revoke:first");
+  const other = await evaluate("revoke:other");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Decision history", exact: true })
+    .click();
+  const entry = page
+    .locator(".workspace-history > details")
+    .filter({ hasText: "revoke:first" });
+  await entry.locator("summary").first().click();
+  await entry
+    .getByRole("button", { name: "Check current authorization" })
+    .click();
+  await expect(
+    entry.getByText("Allowed at last check", { exact: true }),
+  ).toBeVisible();
+  await entry
+    .getByLabel("Revocation reason")
+    .fill("The user canceled this specific audit.");
+  await entry.getByRole("button", { name: "Revoke this receipt" }).click();
+  await expect(
+    entry.getByText("Receipt revoked", { exact: true }),
+  ).toBeVisible();
+  await entry
+    .getByRole("button", { name: "Check current authorization" })
+    .click();
+  await expect(
+    entry.getByText("Blocked at last check", { exact: true }),
+  ).toBeVisible();
+  await expect(entry.getByRole("status")).toContainText("RECEIPT_REVOKED");
+  const stillAllowed = await page.request.get(
+    `/api/workspace/decisions/${other.receipt_id}/authorization`,
+  );
+  expect((await stillAllowed.json()).allowed_now).toBe(true);
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Decision history", exact: true })
+    .click();
+  await entry.locator("summary").first().click();
+  await expect(
+    entry.getByText("The user canceled this specific audit."),
+  ).toBeVisible();
+  const blocked = await page.request.get(
+    `/api/workspace/decisions/${first.receipt_id}/authorization`,
+  );
+  expect((await blocked.json()).allowed_now).toBe(false);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("receipt-revoked.png"),
+    fullPage: true,
+  });
+});
+
 test("private workspace uses real policy and remembers a failure", async ({
   page,
 }, testInfo) => {

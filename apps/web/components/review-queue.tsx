@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DecisionReceipt } from "@/lib/types";
+import type { ReceiptRevocation } from "@/components/receipt-controls";
 
 export type OwnerReview = {
   review_id: string;
@@ -20,6 +21,7 @@ export type AuthorizationCheck = {
 type ReviewItem = {
   receipt: DecisionReceipt;
   review?: OwnerReview | null;
+  revocation?: ReceiptRevocation | null;
   action: {
     provider_id: string;
     offering: string;
@@ -60,9 +62,14 @@ export function ReviewQueue({
   const visible = escalated.filter((item) => {
     if (filter === "All") return true;
     if (filter === "Reviewed") return Boolean(item.review);
+    if (filter === "Revoked") return Boolean(item.revocation);
     if (filter === "Expired")
       return !item.review && Date.parse(item.receipt.expires_at) <= now;
-    return !item.review && Date.parse(item.receipt.expires_at) > now;
+    return (
+      !item.review &&
+      !item.revocation &&
+      Date.parse(item.receipt.expires_at) > now
+    );
   });
   return (
     <section className="workspace-card">
@@ -82,9 +89,11 @@ export function ReviewQueue({
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
           >
-            {["Pending", "Reviewed", "Expired", "All"].map((value) => (
-              <option key={value}>{value}</option>
-            ))}
+            {["Pending", "Reviewed", "Revoked", "Expired", "All"].map(
+              (value) => (
+                <option key={value}>{value}</option>
+              ),
+            )}
           </select>
         </label>
       </div>
@@ -100,7 +109,7 @@ export function ReviewQueue({
             : "No reviews in this view."}
         </div>
       )}
-      {visible.map(({ receipt, action, review }) => {
+      {visible.map(({ receipt, action, review, revocation }) => {
         const expired = Date.parse(receipt.expires_at) <= now;
         const reviewable =
           receipt.reason_codes.length === 1 &&
@@ -111,15 +120,17 @@ export function ReviewQueue({
             <div className="workspace-section-head">
               <div>
                 <span
-                  className={`workspace-verdict ${review?.decision === "REJECT" ? "deny" : "escalate"}`}
+                  className={`workspace-verdict ${revocation || review?.decision === "REJECT" ? "deny" : "escalate"}`}
                 >
-                  {review
-                    ? review.decision === "APPROVE"
-                      ? "OWNER APPROVED"
-                      : "OWNER REJECTED"
-                    : expired
-                      ? "EXPIRED"
-                      : "NEEDS REVIEW"}
+                  {revocation
+                    ? "REVOKED"
+                    : review
+                      ? review.decision === "APPROVE"
+                        ? "OWNER APPROVED"
+                        : "OWNER REJECTED"
+                      : expired
+                        ? "EXPIRED"
+                        : "NEEDS REVIEW"}
                 </span>
                 <h3>
                   {action?.provider_id ?? "Unknown provider"} ·{" "}
@@ -167,7 +178,16 @@ export function ReviewQueue({
                 </div>
               ))}
             </details>
-            {review ? (
+            {revocation ? (
+              <div className="revocation-record">
+                <strong>Receipt revoked</strong>
+                <p>{revocation.reason}</p>
+                <small>
+                  The owner stopped this receipt. Its original decision and
+                  review remain in decision history.
+                </small>
+              </div>
+            ) : review ? (
               <div className="review-outcome">
                 <p>
                   <strong>Owner’s reason:</strong> {review.reason}

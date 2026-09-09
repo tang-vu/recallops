@@ -33,6 +33,7 @@ from recallops.models import (
     ProposedAction,
     StoredMemory,
     WorkspaceReview,
+    WorkspaceRevocation,
     utc_now,
 )
 
@@ -692,6 +693,35 @@ class SibylMemoryStore:
             return WorkspaceReview.model_validate(record.body) if record is not None else None
         except Exception as exc:
             raise MemorySubsystemError("Stored workspace review is invalid") from exc
+
+    def write_workspace_revocation(self, revocation: WorkspaceRevocation) -> None:
+        """Save a permanent stop for one receipt, retaining its original decision."""
+        try:
+            self._client.write_event(
+                acted=[f"Owner revoked receipt {revocation.receipt_id}"],
+                extra={
+                    "event_type": "WORKSPACE_RECEIPT_REVOKED",
+                    "receipt_id": str(revocation.receipt_id),
+                    "revocation_id": str(revocation.revocation_id),
+                },
+            )
+            self._client.set_entity(
+                "workspace_revocation",
+                f"workspace-revocation:{revocation.receipt_id}",
+                revocation.model_dump(mode="json"),
+                status="revoked",
+            )
+        except Exception as exc:
+            raise MemorySubsystemError("Failed to persist receipt revocation") from exc
+
+    def get_workspace_revocation(self, receipt_id: str) -> WorkspaceRevocation | None:
+        record = self._read_optional_entity(
+            "workspace_revocation", f"workspace-revocation:{receipt_id}"
+        )
+        try:
+            return WorkspaceRevocation.model_validate(record.body) if record is not None else None
+        except Exception as exc:
+            raise MemorySubsystemError("Stored receipt revocation is invalid") from exc
 
     def write_execution_authorization(
         self,

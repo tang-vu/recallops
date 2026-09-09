@@ -418,6 +418,105 @@ def test_authorization_checks_changed_policy_pause_and_expiry(tmp_path: Path) ->
     )
 
 
+def test_receipt_revocation_is_durable_scoped_and_keeps_other_requests_active(
+    tmp_path: Path,
+) -> None:
+    client = TestClient(create_app(memory_db=tmp_path / "demo.db"))
+    keys, other = create(client), create(client, "Other")
+    identifier = str(uuid4())
+    receipt = evaluate(client, keys["agent_key"], idempotency=identifier).json()["receipt"]
+    unaffected = evaluate(client, keys["agent_key"]).json()["receipt"]
+    route = f"/v1/workspace/decisions/{receipt['receipt_id']}"
+    body = {"reason": "The owner canceled this specific job."}
+    assert client.get(route + "/authorization", headers=auth(keys["agent_key"])).json()[
+        "allowed_now"
+    ]
+    assert (
+        client.post(route + "/revoke", headers=auth(keys["agent_key"]), json=body).status_code
+        == 403
+    )
+    assert (
+        client.post(route + "/revoke", headers=auth(other["owner_key"]), json=body).status_code
+        == 404
+    )
+    assert (
+        client.post(
+            route + "/revoke", headers=auth(keys["owner_key"]), json={"reason": "  "}
+        ).status_code
+        == 422
+    )
+    saved = client.post(route + "/revoke", headers=auth(keys["owner_key"]), json=body)
+    assert saved.status_code == 200
+    again = client.post(route + "/revoke", headers=auth(keys["owner_key"]), json=body).json()
+    assert again["idempotent_replay"] is True
+    assert again["revocation"] == saved.json()["revocation"]
+    assert (
+        client.post(
+            route + "/revoke", headers=auth(keys["owner_key"]), json={"reason": "Changed"}
+        ).status_code
+        == 409
+    )
+    restarted = TestClient(create_app(memory_db=tmp_path / "demo.db"))
+    checked = restarted.get(route + "/authorization", headers=auth(keys["agent_key"])).json()
+    assert checked["allowed_now"] is False
+    assert checked["reason_code"] == "RECEIPT_REVOKED"
+    assert checked["revocation"]["reason"] == body["reason"]
+    replay = evaluate(restarted, keys["agent_key"], idempotency=identifier).json()
+    assert replay["receipt"] == receipt  # Replay remains historical, not a fresh permission check.
+    untouched = restarted.get(
+        f"/v1/workspace/decisions/{unaffected['receipt_id']}/authorization",
+        headers=auth(keys["agent_key"]),
+    ).json()
+    assert untouched["allowed_now"] is True
+    history = restarted.get("/v1/workspace/decisions", headers=auth(keys["owner_key"])).json()
+    entry = next(item for item in history if item["receipt"]["receipt_id"] == receipt["receipt_id"])
+    assert entry["receipt"]["decision"] == "APPROVE"
+    assert entry["revocation"] == saved.json()["revocation"]
+
+
+def test_revocation_blocks_review_approval_and_survives_policy_resume(tmp_path: Path) -> None:
+    client = TestClient(create_app(memory_db=tmp_path / "demo.db"))
+    keys = create(client)
+    owner = auth(keys["owner_key"])
+    review = {"decision": "APPROVE", "reason": "Accepted the risk."}
+    for already_reviewed in (False, True):
+        receipt = evaluate(client, keys["agent_key"], {**ACTION, "risk_class": "HIGH"}).json()[
+            "receipt"
+        ]
+        route = f"/v1/workspace/decisions/{receipt['receipt_id']}"
+        if already_reviewed:
+            assert client.post(route + "/review", headers=owner, json=review).status_code == 200
+        assert (
+            client.post(
+                route + "/revoke", headers=owner, json={"reason": "Cancel this action"}
+            ).status_code
+            == 200
+        )
+        assert client.post(route + "/review", headers=owner, json=review).status_code == 409
+        policy = client.get("/v1/workspace", headers=owner).json()["policy"]
+        for enabled in (False, True):
+            policy["agent_enabled"] = enabled
+            assert client.put("/v1/workspace/policy", headers=owner, json=policy).status_code == 200
+        checked = client.get(route + "/authorization", headers=auth(keys["agent_key"])).json()
+        assert checked["allowed_now"] is False
+        assert checked["reason_code"] == "RECEIPT_REVOKED"
+
+
+def test_revocation_read_failure_never_returns_permission(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    client = TestClient(create_app(memory_db=tmp_path / "demo.db"))
+    keys = create(client)
+    receipt = evaluate(client, keys["agent_key"]).json()["receipt"]
+
+    def fail_read(*args: Any, **kwargs: Any) -> Any:
+        raise MemorySubsystemError("Revocation storage unavailable")
+
+    monkeypatch.setattr(SibylMemoryStore, "get_workspace_revocation", fail_read)
+    route = f"/v1/workspace/decisions/{receipt['receipt_id']}/authorization"
+    assert client.get(route, headers=auth(keys["agent_key"])).status_code == 503
+
+
 def test_review_audit_failure_never_becomes_a_permit(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
